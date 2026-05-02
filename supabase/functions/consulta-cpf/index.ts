@@ -68,8 +68,6 @@ async function getSerasaToken(): Promise<string> {
       url: TOKEN_URL,
       clientIdPrefix: clientId.substring(0, 6),
       clientIdLen: clientId.length,
-      env: SERASA_ENV,
-      url: url.toString(),
       body: text.substring(0, 500),
     });
     throw new Error(`Falha ao obter token Serasa [${resp.status}]: ${text}`);
@@ -133,6 +131,9 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
   if (!retailerCnpj) {
     throw new Error("SERASA_RETAILER_CNPJ não configurado no servidor");
   }
+  if (retailerCnpj.length !== 14) {
+    throw new Error("SERASA_RETAILER_CNPJ inválido: informe o CNPJ do Distribuidor Indireto com 14 dígitos");
+  }
 
   const url = new URL(REPORT_URL);
   url.searchParams.set("reportName", "PERFIL_DE_CREDITO_BASICO_PF");
@@ -147,12 +148,9 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/json",
-      // Serasa documenta "X-Document-Id" mas o e-mail de homologação cita "X-Documento-ID".
-      // Enviamos ambos para garantir compatibilidade nos dois ambientes.
+      // Em produção, a Serasa valida estes headers exatamente como documentados.
       "X-Document-Id": cpf,
-      "X-Documento-ID": cpf,
       "X-Retailer-Document-Id": retailerCnpj,
-      "X-Retailer-Document-ID": retailerCnpj,
     },
   });
 
@@ -162,6 +160,8 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
       status: resp.status,
       env: SERASA_ENV,
       url: url.toString(),
+      retailerCnpjDigits: retailerCnpj.length,
+      retailerCnpjSuffix: retailerCnpj.slice(-4),
       body: text.substring(0, 500),
     });
     if (resp.status === 404) {
