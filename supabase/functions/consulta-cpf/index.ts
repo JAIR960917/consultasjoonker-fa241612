@@ -6,7 +6,8 @@
 //   1. POST /security/iam/v1/client-identities/login com Basic Auth (client_id:client_secret)
 //      → access_token (cache em memória)
 //   2. GET  /credit-services/person-information-report/v1/creditreport
-//        ?reportName=PERFIL_DE_CREDITO_BASICO_PF&optionalFeatures=SCORE_POSITIVO
+//        ?reportName=PERFIL_DE_CREDITO_BASICO_PF
+//      Em UAT, também envia optionalFeatures=SCORE_POSITIVO para homologação.
 //      headers: Authorization: Bearer, X-Document-Id (CPF), X-Retailer-Document-Id (CNPJ)
 //   3. Extrai nome, score e pendências, persiste e devolve
 //
@@ -67,6 +68,8 @@ async function getSerasaToken(): Promise<string> {
       url: TOKEN_URL,
       clientIdPrefix: clientId.substring(0, 6),
       clientIdLen: clientId.length,
+      env: SERASA_ENV,
+      url: url.toString(),
       body: text.substring(0, 500),
     });
     throw new Error(`Falha ao obter token Serasa [${resp.status}]: ${text}`);
@@ -133,9 +136,11 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
 
   const url = new URL(REPORT_URL);
   url.searchParams.set("reportName", "PERFIL_DE_CREDITO_BASICO_PF");
-  url.searchParams.append("optionalFeatures", "SCORE_POSITIVO");
-  // SCORE_POSITIVO exige federalUnit (UF) como parâmetro obrigatório
-  url.searchParams.set("federalUnit", federalUnit);
+  if (SERASA_ENV !== "prod") {
+    url.searchParams.append("optionalFeatures", "SCORE_POSITIVO");
+    // SCORE_POSITIVO exige federalUnit (UF) como parâmetro obrigatório
+    url.searchParams.set("federalUnit", federalUnit);
+  }
 
   const resp = await fetch(url.toString(), {
     method: "GET",
@@ -147,6 +152,7 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
       "X-Document-Id": cpf,
       "X-Documento-ID": cpf,
       "X-Retailer-Document-Id": retailerCnpj,
+      "X-Retailer-Document-ID": retailerCnpj,
     },
   });
 
@@ -154,6 +160,8 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
   if (!resp.ok) {
     console.error("Serasa report error", {
       status: resp.status,
+      env: SERASA_ENV,
+      url: url.toString(),
       body: text.substring(0, 500),
     });
     if (resp.status === 404) {
