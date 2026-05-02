@@ -574,6 +574,9 @@ Deno.serve(async (req) => {
     if (code === "DOCUMENT_NOT_FOUND") {
       return jsonResp({ error: msg, notFound: true }, 200);
     }
+    if (code === "SERASA_USER_NOT_AUTHORIZED") {
+      return jsonResp({ error: msg, serasaUnauthorized: true }, 200);
+    }
     return jsonResp({ error: msg }, 500);
   }
 });
