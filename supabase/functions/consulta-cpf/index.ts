@@ -6,7 +6,8 @@
 //   1. POST /security/iam/v1/client-identities/login com Basic Auth (client_id:client_secret)
 //      → access_token (cache em memória)
 //   2. GET  /credit-services/person-information-report/v1/creditreport
-//        ?reportName=PERFIL_DE_CREDITO_BASICO_PF&optionalFeatures=SCORE_POSITIVO
+//        ?reportName=PERFIL_DE_CREDITO_BASICO_PF
+//      Em UAT, também envia optionalFeatures=SCORE_POSITIVO para homologação.
 //      headers: Authorization: Bearer, X-Document-Id (CPF), X-Retailer-Document-Id (CNPJ)
 //   3. Extrai nome, score e pendências, persiste e devolve
 //
@@ -151,6 +152,7 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
       "X-Document-Id": cpf,
       "X-Documento-ID": cpf,
       "X-Retailer-Document-Id": retailerCnpj,
+      "X-Retailer-Document-ID": retailerCnpj,
     },
   });
 
@@ -158,6 +160,8 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
   if (!resp.ok) {
     console.error("Serasa report error", {
       status: resp.status,
+      env: SERASA_ENV,
+      url: url.toString(),
       body: text.substring(0, 500),
     });
     if (resp.status === 404) {
