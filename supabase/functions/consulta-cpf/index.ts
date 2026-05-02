@@ -67,6 +67,8 @@ async function getSerasaToken(): Promise<string> {
       url: TOKEN_URL,
       clientIdPrefix: clientId.substring(0, 6),
       clientIdLen: clientId.length,
+      env: SERASA_ENV,
+      url: url.toString(),
       body: text.substring(0, 500),
     });
     throw new Error(`Falha ao obter token Serasa [${resp.status}]: ${text}`);
@@ -133,9 +135,11 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
 
   const url = new URL(REPORT_URL);
   url.searchParams.set("reportName", "PERFIL_DE_CREDITO_BASICO_PF");
-  url.searchParams.append("optionalFeatures", "SCORE_POSITIVO");
-  // SCORE_POSITIVO exige federalUnit (UF) como parâmetro obrigatório
-  url.searchParams.set("federalUnit", federalUnit);
+  if (SERASA_ENV !== "prod") {
+    url.searchParams.append("optionalFeatures", "SCORE_POSITIVO");
+    // SCORE_POSITIVO exige federalUnit (UF) como parâmetro obrigatório
+    url.searchParams.set("federalUnit", federalUnit);
+  }
 
   const resp = await fetch(url.toString(), {
     method: "GET",
