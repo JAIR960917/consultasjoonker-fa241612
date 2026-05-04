@@ -279,7 +279,7 @@ function buildPdf(d: PdfArgs): Uint8Array {
     if (!paragraph) { y += 8; continue; }
     const lines = doc.splitTextToSize(paragraph, usableWidth);
     for (const line of lines) {
-      if (y > pageHeight - margin - 120) { doc.addPage(); y = margin; }
+      if (y > pageHeight - margin - 110) { doc.addPage(); y = margin; }
       doc.text(line, margin, y);
       y += lineHeight;
     }
