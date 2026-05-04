@@ -70,6 +70,7 @@ export default function Contrato() {
   const [phoneChoice, setPhoneChoice] = useState<"cliente" | "empresa">("cliente");
   const [enviarWhatsapp, setEnviarWhatsapp] = useState(false);
   const [empresaTelefone, setEmpresaTelefone] = useState<string | null>(null);
+  const [comprovanteFile, setComprovanteFile] = useState<File | null>(null);
 
   const handleDownloadSigned = async () => {
     if (!c) return;
