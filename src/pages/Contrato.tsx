@@ -260,8 +260,37 @@ export default function Contrato() {
     setPhoneChoiceOpen(false);
     setSigning(true);
 
+    let comprovante_base64: string | null = null;
+    let comprovante_filename: string | null = null;
+    let comprovante_mime: string | null = null;
+    if (comprovanteFile) {
+      try {
+        const buf = await comprovanteFile.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let bin = "";
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+        }
+        comprovante_base64 = btoa(bin);
+        comprovante_filename = comprovanteFile.name;
+        comprovante_mime = comprovanteFile.type || "application/octet-stream";
+      } catch (e) {
+        setSigning(false);
+        toast.error("Falha ao ler o comprovante de residência");
+        return;
+      }
+    }
+
     const { data, error } = await supabase.functions.invoke("zapsign-criar-documento", {
-      body: { contrato_id: c.id, telefone_envio: telefoneEnvio, enviar_whatsapp: enviarWhatsapp },
+      body: {
+        contrato_id: c.id,
+        telefone_envio: telefoneEnvio,
+        enviar_whatsapp: enviarWhatsapp,
+        comprovante_base64,
+        comprovante_filename,
+        comprovante_mime,
+      },
     });
 
     setSigning(false);
