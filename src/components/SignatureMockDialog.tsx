@@ -44,21 +44,12 @@ export function SignatureMockDialog({ open, onOpenChange, signatureUrl, status, 
           <DialogDescription>
             {assinado
               ? "O cliente concluiu a assinatura. O contrato já tem validade jurídica."
-              : "O link de assinatura foi enviado para o WhatsApp do cliente. Você também pode compartilhar por aqui."}
+              : "Compartilhe o link ou QR Code abaixo com o cliente para ele assinar."}
           </DialogDescription>
         </DialogHeader>
 
         {!assinado ? (
           <div className="space-y-4">
-            <div className="rounded-md border border-success/40 bg-success/5 p-3 text-sm flex items-start gap-2">
-              <MessageCircle className="h-4 w-4 mt-0.5 text-success shrink-0" />
-              <div>
-                <p className="font-medium text-foreground">Enviado via WhatsApp</p>
-                <p className="text-xs text-muted-foreground">
-                  Quando o cliente assinar, o status atualiza automaticamente nesta página.
-                </p>
-              </div>
-            </div>
 
             {hasUrl && (
               <>
