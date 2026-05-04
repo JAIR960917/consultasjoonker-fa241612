@@ -226,13 +226,17 @@ export default function Contrato() {
 
   const submitSignature = async () => {
     if (!c) return;
-    if (phoneChoice === "empresa" && !empresaTelefone) {
+    if (enviarWhatsapp && phoneChoice === "empresa" && !empresaTelefone) {
       toast.error("A empresa não tem telefone cadastrado", {
         description: "Cadastre o telefone na página Empresas ou envie para o cliente.",
       });
       return;
     }
-    const telefoneEnvio = phoneChoice === "empresa" ? empresaTelefone! : c.telefone;
+    if (enviarWhatsapp && phoneChoice === "cliente" && !c.telefone) {
+      toast.error("Cliente sem telefone cadastrado");
+      return;
+    }
+    const telefoneEnvio = phoneChoice === "empresa" ? (empresaTelefone ?? "") : (c.telefone ?? "");
     setPhoneChoiceOpen(false);
     setSigning(true);
 
