@@ -73,13 +73,13 @@ export default function Contrato() {
     if (!c) return;
     setDownloadingSigned(true);
     try {
-      const { data, error } = await supabase.functions.invoke("assertiva-baixar-assinado", {
+      const { data, error } = await supabase.functions.invoke("zapsign-baixar-assinado", {
         body: { contrato_id: c.id },
       });
       if (error) throw error;
       if (!data?.ok) {
         toast.error("Documento ainda não disponível", {
-          description: data?.error ?? "A Assertiva ainda não disponibilizou o PDF assinado.",
+          description: data?.error ?? "A ZapSign ainda não disponibilizou o PDF assinado.",
         });
         return;
       }
@@ -234,7 +234,7 @@ export default function Contrato() {
     setPhoneChoiceOpen(false);
     setSigning(true);
 
-    const { data, error } = await supabase.functions.invoke("assertiva-enviar-assinatura", {
+    const { data, error } = await supabase.functions.invoke("zapsign-criar-documento", {
       body: { contrato_id: c.id, telefone_envio: telefoneEnvio },
     });
 
@@ -251,12 +251,12 @@ export default function Contrato() {
       ...c,
       status: "aguardando_assinatura",
       signature_url: newUrl,
-      signature_provider: "assertiva",
+      signature_provider: "zapsign",
     });
-    toast.success("Contrato enviado", {
+    toast.success("Documento criado na ZapSign", {
       description: phoneChoice === "empresa"
         ? "O link foi enviado para o WhatsApp da loja."
-        : "O cliente receberá o link de assinatura via WhatsApp.",
+        : "O cliente receberá o link via WhatsApp. Você também pode mostrar o QR Code abaixo.",
     });
     setSignDialog(true);
   };
@@ -264,7 +264,7 @@ export default function Contrato() {
   const handleSyncStatus = async () => {
     if (!c) return;
     setSyncing(true);
-    const { data, error } = await supabase.functions.invoke("assertiva-sincronizar-status", {
+    const { data, error } = await supabase.functions.invoke("zapsign-sincronizar-status", {
       body: { contrato_id: c.id },
     });
     setSyncing(false);
@@ -275,10 +275,10 @@ export default function Contrato() {
     }
     if (data.status === "assinado") {
       setC({ ...c, status: "assinado", signed_at: new Date().toISOString() });
-      toast.success("Contrato assinado!", { description: "Status atualizado a partir da Assertiva." });
+      toast.success("Contrato assinado!", { description: "Status atualizado a partir da ZapSign." });
     } else {
       toast.info("Ainda não assinado", {
-        description: `Status na Assertiva: ${data.statusPedido || data.statusParte || "pendente"}`,
+        description: `Status na ZapSign: ${data.zapsign_status || "pendente"}`,
       });
     }
   };
@@ -296,7 +296,7 @@ export default function Contrato() {
     }
     setC({ ...c, status: "assinado", signed_at: now });
     toast.success("Assinatura simulada com sucesso", {
-      description: "Quando a Assertiva for conectada, isto acontecerá automaticamente.",
+      description: "Em produção isto acontece automaticamente via webhook ZapSign.",
     });
   };
 
@@ -503,7 +503,7 @@ export default function Contrato() {
           <DialogHeader>
             <DialogTitle>Para qual número enviar o link?</DialogTitle>
             <DialogDescription>
-              Escolha para qual WhatsApp a Assertiva deve enviar o link de assinatura. O telefone do cliente continua salvo na promissória normalmente.
+              Escolha para qual WhatsApp a ZapSign deve enviar o link de assinatura. O telefone do cliente continua salvo na promissória normalmente.
             </DialogDescription>
           </DialogHeader>
 

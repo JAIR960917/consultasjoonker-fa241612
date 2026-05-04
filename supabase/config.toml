@@ -12,5 +12,6 @@ verify_jwt = false
 [functions.cora-webhook]
 verify_jwt = false
 
-[functions.assertiva-webhook]
+
+[functions.zapsign-webhook]
 verify_jwt = false
