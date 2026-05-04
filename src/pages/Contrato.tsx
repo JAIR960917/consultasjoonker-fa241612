@@ -313,6 +313,7 @@ export default function Contrato() {
         ? `Link enviado por WhatsApp para ${telefoneEnvio}. Você também pode mostrar o QR Code abaixo.`
         : "Use o link / QR Code abaixo para o cliente assinar.",
     });
+    setComprovanteFile(null);
     setSignDialog(true);
   };
 
