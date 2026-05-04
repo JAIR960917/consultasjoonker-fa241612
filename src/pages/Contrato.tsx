@@ -70,6 +70,7 @@ export default function Contrato() {
   const [phoneChoice, setPhoneChoice] = useState<"cliente" | "empresa">("cliente");
   const [enviarWhatsapp, setEnviarWhatsapp] = useState(false);
   const [empresaTelefone, setEmpresaTelefone] = useState<string | null>(null);
+  const [comprovanteFile, setComprovanteFile] = useState<File | null>(null);
 
   const handleDownloadSigned = async () => {
     if (!c) return;
@@ -259,8 +260,37 @@ export default function Contrato() {
     setPhoneChoiceOpen(false);
     setSigning(true);
 
+    let comprovante_base64: string | null = null;
+    let comprovante_filename: string | null = null;
+    let comprovante_mime: string | null = null;
+    if (comprovanteFile) {
+      try {
+        const buf = await comprovanteFile.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let bin = "";
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+        }
+        comprovante_base64 = btoa(bin);
+        comprovante_filename = comprovanteFile.name;
+        comprovante_mime = comprovanteFile.type || "application/octet-stream";
+      } catch (e) {
+        setSigning(false);
+        toast.error("Falha ao ler o comprovante de residência");
+        return;
+      }
+    }
+
     const { data, error } = await supabase.functions.invoke("zapsign-criar-documento", {
-      body: { contrato_id: c.id, telefone_envio: telefoneEnvio, enviar_whatsapp: enviarWhatsapp },
+      body: {
+        contrato_id: c.id,
+        telefone_envio: telefoneEnvio,
+        enviar_whatsapp: enviarWhatsapp,
+        comprovante_base64,
+        comprovante_filename,
+        comprovante_mime,
+      },
     });
 
     setSigning(false);
@@ -283,6 +313,7 @@ export default function Contrato() {
         ? `Link enviado por WhatsApp para ${telefoneEnvio}. Você também pode mostrar o QR Code abaixo.`
         : "Use o link / QR Code abaixo para o cliente assinar.",
     });
+    setComprovanteFile(null);
     setSignDialog(true);
   };
 
@@ -532,6 +563,27 @@ export default function Contrato() {
               também enviá-lo automaticamente por WhatsApp.
             </DialogDescription>
           </DialogHeader>
+
+          <div className="space-y-2 rounded-lg border p-3">
+            <Label htmlFor="comprovante" className="text-sm font-medium">
+              Comprovante de residência do cliente
+            </Label>
+            <input
+              id="comprovante"
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) => setComprovanteFile(e.target.files?.[0] ?? null)}
+              className="block w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-primary-foreground file:cursor-pointer"
+            />
+            <p className="text-xs text-muted-foreground">
+              Será anexado à assinatura na ZapSign como documento adicional. Aceita imagem ou PDF.
+            </p>
+            {comprovanteFile && (
+              <p className="text-xs text-foreground">
+                Arquivo: <span className="font-medium">{comprovanteFile.name}</span>
+              </p>
+            )}
+          </div>
 
           <div className="flex items-start gap-3 rounded-lg border p-3">
             <Checkbox
