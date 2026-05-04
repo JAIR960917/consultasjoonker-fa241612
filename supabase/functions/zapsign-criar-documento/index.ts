@@ -24,7 +24,14 @@ function zapsignBase() {
     : "https://sandbox.api.zapsign.com.br";
 }
 
-interface BodyInput { contrato_id: string; telefone_envio?: string; enviar_whatsapp?: boolean }
+interface BodyInput {
+  contrato_id: string;
+  telefone_envio?: string;
+  enviar_whatsapp?: boolean;
+  comprovante_base64?: string | null;
+  comprovante_filename?: string | null;
+  comprovante_mime?: string | null;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
