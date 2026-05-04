@@ -464,9 +464,9 @@ export default function Contrato() {
                 const m = line.match(/^(.*?\S)\s{4,}(\S.*)$/);
                 if (m) {
                   return (
-                    <div key={i} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                    <div key={i} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[13px]">
                       <span>{m[1]}</span>
-                      <span className="text-right">{m[2]}</span>
+                      <span className="text-right whitespace-nowrap">{m[2]}</span>
                     </div>
                   );
                 }
