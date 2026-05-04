@@ -123,6 +123,7 @@ Deno.serve(async (req) => {
           send_automatic_email: false,
           send_automatic_whatsapp: !!body.enviar_whatsapp && !!phoneNumber,
           require_selfie_photo: true,
+          require_document_photo: true,
           selfie_validation_type: "none",
           qualification: "Emitente",
           external_id: contrato.id,
