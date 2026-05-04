@@ -217,6 +217,25 @@ export default function Contrato() {
     })();
   }, [id]);
 
+  // Polling automático: enquanto aguardando assinatura, sincroniza a cada 15s
+  useEffect(() => {
+    if (!c || c.status !== "aguardando_assinatura" || c.signature_provider !== "zapsign") return;
+    let cancelled = false;
+    const tick = async () => {
+      const { data } = await supabase.functions.invoke("zapsign-sincronizar-status", {
+        body: { contrato_id: c.id },
+      });
+      if (cancelled) return;
+      if (data?.ok && data.status === "assinado") {
+        setC((prev) => prev ? { ...prev, status: "assinado", signed_at: new Date().toISOString() } : prev);
+        setSignDialog(false);
+        toast.success("Contrato assinado!");
+      }
+    };
+    const interval = setInterval(tick, 15000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [c?.id, c?.status, c?.signature_provider]);
+
   const handleStartSignature = () => {
     if (!c) return;
     // Abre o diálogo para o vendedor escolher o destinatário do link
