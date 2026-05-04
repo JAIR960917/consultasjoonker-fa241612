@@ -73,13 +73,13 @@ export default function Contrato() {
     if (!c) return;
     setDownloadingSigned(true);
     try {
-      const { data, error } = await supabase.functions.invoke("assertiva-baixar-assinado", {
+      const { data, error } = await supabase.functions.invoke("zapsign-baixar-assinado", {
         body: { contrato_id: c.id },
       });
       if (error) throw error;
       if (!data?.ok) {
         toast.error("Documento ainda não disponível", {
-          description: data?.error ?? "A Assertiva ainda não disponibilizou o PDF assinado.",
+          description: data?.error ?? "A ZapSign ainda não disponibilizou o PDF assinado.",
         });
         return;
       }
@@ -503,7 +503,7 @@ export default function Contrato() {
           <DialogHeader>
             <DialogTitle>Para qual número enviar o link?</DialogTitle>
             <DialogDescription>
-              Escolha para qual WhatsApp a Assertiva deve enviar o link de assinatura. O telefone do cliente continua salvo na promissória normalmente.
+              Escolha para qual WhatsApp a ZapSign deve enviar o link de assinatura. O telefone do cliente continua salvo na promissória normalmente.
             </DialogDescription>
           </DialogHeader>
 
