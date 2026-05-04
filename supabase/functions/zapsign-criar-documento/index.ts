@@ -1,6 +1,6 @@
 // Edge Function: zapsign-criar-documento
 // Cria um documento na ZapSign a partir do contrato (gera PDF e envia em base64).
-// Body: { contrato_id: string; telefone_envio?: string }
+// Body: { contrato_id: string; telefone_envio?: string; enviar_whatsapp?: boolean }
 //
 // Salva em contracts:
 //   signature_provider = "zapsign"
@@ -24,7 +24,7 @@ function zapsignBase() {
     : "https://sandbox.api.zapsign.com.br";
 }
 
-interface BodyInput { contrato_id: string; telefone_envio?: string }
+interface BodyInput { contrato_id: string; telefone_envio?: string; enviar_whatsapp?: boolean }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
           phone_number: phoneNumber,
           auth_mode: "assinaturaTela",
           send_automatic_email: false,
-          send_automatic_whatsapp: !!phoneNumber,
+          send_automatic_whatsapp: !!body.enviar_whatsapp && !!phoneNumber,
           require_selfie_photo: true,
           selfie_validation_type: "none",
           qualification: "Emitente",
