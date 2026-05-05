@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
           blank_email: true,
           phone_country: "55",
           phone_number: phoneNumber,
-          auth_mode: "assinaturaTela",
+          auth_mode: "assinaturaBiometrica",
           send_automatic_email: false,
           send_automatic_whatsapp: !!body.enviar_whatsapp && !!phoneNumber,
           require_selfie_photo: true,

@@ -115,7 +115,7 @@ export function ZapsignTab() {
             <li>Vendedor clica em <strong>Assinar contrato</strong> na tela do contrato.</li>
             <li>O sistema gera o PDF da promissória e envia para a ZapSign.</li>
             <li>É exibido um <strong>QR Code + link</strong> (para assinar na hora) e o link também é enviado por <strong>WhatsApp</strong>.</li>
-            <li>O cliente assina na tela e tira uma <strong>selfie</strong> obrigatória.</li>
+            <li>O cliente confirma a assinatura tirando uma <strong>selfie</strong> e uma <strong>foto do documento</strong> (RG/CNH).</li>
             <li>Quando assinado, o webhook da ZapSign atualiza o contrato e o PDF assinado fica disponível para download.</li>
           </ol>
         </CardContent>
