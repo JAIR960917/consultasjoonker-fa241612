@@ -218,54 +218,6 @@ Deno.serve(async (req) => {
       return json({ ok: false, error: "ZapSign não retornou token/sign_url", detail: docJson }, 502);
     }
 
-    // ---------- Anexa comprovante de residência como documento extra (opcional) ----------
-    let extraDocResult: { ok: boolean; status?: number; detail?: unknown } | null = null;
-    if (body.comprovante_base64 && body.comprovante_filename) {
-      try {
-        const mime = (body.comprovante_mime || "").toLowerCase();
-        let extraBase64 = body.comprovante_base64;
-        let extraFilename = body.comprovante_filename;
-
-        if (mime.startsWith("image/")) {
-          const imgFmt = mime.includes("png") ? "PNG" : "JPEG";
-          const pdfDoc = new jsPDF({ unit: "pt", format: "a4" });
-          const pageW = pdfDoc.internal.pageSize.getWidth();
-          const pageH = pdfDoc.internal.pageSize.getHeight();
-          const margin = 30;
-          const maxW = pageW - margin * 2;
-          const maxH = pageH - margin * 2 - 30;
-          pdfDoc.setFont("helvetica", "bold");
-          pdfDoc.setFontSize(12);
-          pdfDoc.text("Comprovante de residência", pageW / 2, margin, { align: "center" });
-          const dataUri = `data:${mime};base64,${body.comprovante_base64}`;
-          pdfDoc.addImage(dataUri, imgFmt, margin, margin + 20, maxW, maxH, undefined, "FAST");
-          const pdfBytes = new Uint8Array(pdfDoc.output("arraybuffer"));
-          extraBase64 = bytesToBase64(pdfBytes);
-          extraFilename = extraFilename.replace(/\.[^.]+$/, "") + ".pdf";
-        }
-
-        const extraResp = await fetch(`${base}/api/v1/docs/${docToken}/upload-extra-doc/`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiToken}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            name: `Comprovante de residência - ${contrato.nome}`.slice(0, 250),
-            base64_pdf: extraBase64,
-          }),
-        });
-        const extraText = await extraResp.text();
-        const extraJson = safeJson(extraText);
-        console.info("zapsign upload-extra-doc status", extraResp.status, "body", extraText.slice(0, 600));
-        extraDocResult = { ok: extraResp.ok, status: extraResp.status, detail: extraJson ?? extraText.slice(0, 500) };
-      } catch (e) {
-        console.error("zapsign extra doc error", e);
-        extraDocResult = { ok: false, detail: e instanceof Error ? e.message : String(e) };
-      }
-    }
-
     await admin.from("contracts").update({
       signature_provider: "zapsign",
       signature_external_id: docToken,
@@ -279,7 +231,7 @@ Deno.serve(async (req) => {
         signed_file: docJson?.signed_file ?? null,
         env: (Deno.env.get("ZAPSIGN_ENV") || "sandbox"),
         raw: docJson,
-        extra_doc: extraDocResult,
+        comprovante_merged: !!body.comprovante_base64,
       },
       status: "aguardando_assinatura",
     }).eq("id", contrato.id);
@@ -291,7 +243,7 @@ Deno.serve(async (req) => {
       open_id: openId,
       signer_token: signerToken,
       signature_url: signUrl,
-      extra_doc: extraDocResult,
+      comprovante_merged: !!body.comprovante_base64,
     });
   } catch (err) {
     console.error("zapsign-criar-documento error", err);
