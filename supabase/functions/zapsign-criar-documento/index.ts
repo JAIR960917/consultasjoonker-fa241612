@@ -332,6 +332,50 @@ function formatBRL(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/** Monta o array `data` enviado para o endpoint de modelo da ZapSign. */
+function buildTemplateData(args: {
+  nome: string;
+  cpf: string;
+  telefone: string;
+  empresa: { nome: string; cnpj: string; cidade: string } | null;
+  venda: {
+    valor_total: number;
+    valor_entrada: number;
+    valor_financiado: number;
+    valor_parcela: number;
+    parcelas: number;
+    taxa_juros: number;
+    primeiro_vencimento: string | null;
+  } | null;
+}): Array<{ de: string; para: string }> {
+  const today = new Date();
+  const dataAtual = today.toLocaleDateString("pt-BR");
+  const cpfFmt = args.cpf.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  const venc = args.venda?.primeiro_vencimento ? formatDateBR(args.venda.primeiro_vencimento) : "";
+
+  const map: Record<string, string> = {
+    nome: args.nome || "",
+    cpf: cpfFmt || args.cpf || "",
+    telefone: args.telefone || "",
+    empresa: args.empresa?.nome || "",
+    empresa_cnpj: args.empresa?.cnpj || "",
+    cidade: args.empresa?.cidade || "",
+    data: dataAtual,
+    valor_total: args.venda ? formatBRL(args.venda.valor_total) : "",
+    valor_entrada: args.venda ? formatBRL(args.venda.valor_entrada) : "",
+    valor_financiado: args.venda ? formatBRL(args.venda.valor_financiado) : "",
+    valor_parcela: args.venda ? formatBRL(args.venda.valor_parcela) : "",
+    parcelas: args.venda ? String(args.venda.parcelas) : "",
+    taxa_juros: args.venda ? String(args.venda.taxa_juros) : "",
+    primeiro_vencimento: venc,
+    vencimento: venc,
+  };
+
+  return Object.entries(map)
+    .filter(([, v]) => v !== "")
+    .map(([de, para]) => ({ de, para }));
+}
+
 function bytesToBase64(bytes: Uint8Array): string {
   let bin = "";
   const chunk = 0x8000;
