@@ -76,15 +76,38 @@ Deno.serve(async (req) => {
 
     const telefoneParaEnvio = (body.telefone_envio?.trim() || contrato.telefone || "").trim();
 
-    // ---------- Carrega venda + template para PDF ----------
-    let vendaInfo: { valor_total: number; primeiro_vencimento: string | null } | null = null;
+    // ---------- Carrega venda + empresa + template ----------
+    let vendaInfo: {
+      valor_total: number;
+      valor_entrada: number;
+      valor_financiado: number;
+      valor_parcela: number;
+      parcelas: number;
+      taxa_juros: number;
+      primeiro_vencimento: string | null;
+    } | null = null;
     if (contrato.venda_id) {
       const { data: v } = await admin
         .from("vendas")
-        .select("valor_total, primeiro_vencimento")
+        .select("valor_total, valor_entrada, valor_financiado, valor_parcela, parcelas, taxa_juros, primeiro_vencimento")
         .eq("id", contrato.venda_id)
         .maybeSingle();
-      if (v) vendaInfo = { valor_total: Number(v.valor_total), primeiro_vencimento: v.primeiro_vencimento };
+      if (v) vendaInfo = {
+        valor_total: Number(v.valor_total),
+        valor_entrada: Number(v.valor_entrada),
+        valor_financiado: Number(v.valor_financiado),
+        valor_parcela: Number(v.valor_parcela),
+        parcelas: Number(v.parcelas),
+        taxa_juros: Number(v.taxa_juros),
+        primeiro_vencimento: v.primeiro_vencimento,
+      };
+    }
+    let empresaInfo: { nome: string; cnpj: string; cidade: string } | null = null;
+    if (contrato.empresa_id) {
+      const { data: e } = await admin
+        .from("empresas").select("nome, cnpj, cidade")
+        .eq("id", contrato.empresa_id).maybeSingle();
+      if (e) empresaInfo = { nome: e.nome, cnpj: e.cnpj, cidade: e.cidade };
     }
     const { data: tpl } = await admin
       .from("contract_template")
