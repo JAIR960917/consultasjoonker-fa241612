@@ -11,6 +11,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
+import { PDFDocument } from "https://esm.sh/pdf-lib@1.17.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -143,15 +144,31 @@ Deno.serve(async (req) => {
           pdfDoc.text("Comprovante de residência", pageW / 2, margin, { align: "center" });
           const dataUri = `data:${mime};base64,${body.comprovante_base64}`;
           pdfDoc.addImage(dataUri, imgFmt, margin, margin + 20, maxW, maxH, undefined, "FAST");
-        } else {
-          console.warn("Comprovante não-imagem ignorado (apenas imagens são mescladas):", mime);
+        } else if (mime !== "application/pdf") {
+          console.warn("Comprovante com mime não suportado:", mime);
         }
       } catch (e) {
-        console.error("Erro ao mesclar comprovante no PDF:", e);
+        console.error("Erro ao mesclar comprovante (imagem) no PDF:", e);
       }
     }
 
-    const pdfBytes = new Uint8Array(pdfDoc.output("arraybuffer"));
+    let pdfBytes = new Uint8Array(pdfDoc.output("arraybuffer"));
+
+    // Se o comprovante for PDF, mescla via pdf-lib
+    if (body.comprovante_base64 && (body.comprovante_mime || "").toLowerCase() === "application/pdf") {
+      try {
+        const mainPdf = await PDFDocument.load(pdfBytes);
+        const compBytes = base64ToBytes(body.comprovante_base64);
+        const compPdf = await PDFDocument.load(compBytes);
+        const copiedPages = await mainPdf.copyPages(compPdf, compPdf.getPageIndices());
+        copiedPages.forEach((p) => mainPdf.addPage(p));
+        pdfBytes = await mainPdf.save();
+        console.info("Comprovante PDF mesclado com sucesso, páginas:", copiedPages.length);
+      } catch (e) {
+        console.error("Erro ao mesclar comprovante PDF via pdf-lib:", e);
+      }
+    }
+
     const pdfBase64 = bytesToBase64(pdfBytes);
 
     // ---------- Telefone formatado ----------
@@ -266,6 +283,14 @@ function formatDateBR(iso: string): string {
 }
 function formatBRL(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function base64ToBytes(b64: string): Uint8Array {
+  const clean = b64.replace(/^data:[^;]+;base64,/, "");
+  const bin = atob(clean);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
