@@ -76,15 +76,38 @@ Deno.serve(async (req) => {
 
     const telefoneParaEnvio = (body.telefone_envio?.trim() || contrato.telefone || "").trim();
 
-    // ---------- Carrega venda + template para PDF ----------
-    let vendaInfo: { valor_total: number; primeiro_vencimento: string | null } | null = null;
+    // ---------- Carrega venda + empresa + template ----------
+    let vendaInfo: {
+      valor_total: number;
+      valor_entrada: number;
+      valor_financiado: number;
+      valor_parcela: number;
+      parcelas: number;
+      taxa_juros: number;
+      primeiro_vencimento: string | null;
+    } | null = null;
     if (contrato.venda_id) {
       const { data: v } = await admin
         .from("vendas")
-        .select("valor_total, primeiro_vencimento")
+        .select("valor_total, valor_entrada, valor_financiado, valor_parcela, parcelas, taxa_juros, primeiro_vencimento")
         .eq("id", contrato.venda_id)
         .maybeSingle();
-      if (v) vendaInfo = { valor_total: Number(v.valor_total), primeiro_vencimento: v.primeiro_vencimento };
+      if (v) vendaInfo = {
+        valor_total: Number(v.valor_total),
+        valor_entrada: Number(v.valor_entrada),
+        valor_financiado: Number(v.valor_financiado),
+        valor_parcela: Number(v.valor_parcela),
+        parcelas: Number(v.parcelas),
+        taxa_juros: Number(v.taxa_juros),
+        primeiro_vencimento: v.primeiro_vencimento,
+      };
+    }
+    let empresaInfo: { nome: string; cnpj: string; cidade: string } | null = null;
+    if (contrato.empresa_id) {
+      const { data: e } = await admin
+        .from("empresas").select("nome, cnpj, cidade")
+        .eq("id", contrato.empresa_id).maybeSingle();
+      if (e) empresaInfo = { nome: e.nome, cnpj: e.cnpj, cidade: e.cidade };
     }
     const { data: tpl } = await admin
       .from("contract_template")
@@ -95,62 +118,103 @@ Deno.serve(async (req) => {
     // ---------- Gera PDF ----------
     const vencimentoFmt = vendaInfo?.primeiro_vencimento ? formatDateBR(vendaInfo.primeiro_vencimento) : null;
     const valorFmt = vendaInfo?.valor_total != null ? formatBRL(vendaInfo.valor_total) : null;
-    const pdfBytes = buildPdf({
-      title: tplTitle,
-      content: contrato.content,
-      vencimento: vencimentoFmt,
-      valorTotal: valorFmt,
-      numero: "Nº 1 DE 1",
-    });
-    const pdfBase64 = bytesToBase64(pdfBytes);
+    const templateId = (Deno.env.get("ZAPSIGN_TEMPLATE_ID") || "").trim();
+    const useTemplate = templateId.length > 0;
 
     // ---------- Telefone formatado ----------
     const telDigits = telefoneParaEnvio.replace(/\D/g, "");
-    // Remove DDI 55 se presente, ZapSign separa em phone_country e phone_number
     const phoneNumber = telDigits.startsWith("55") && telDigits.length > 11
       ? telDigits.slice(2)
       : telDigits;
 
-    // ---------- Cria documento na ZapSign ----------
-    const docPayload: Record<string, unknown> = {
-      name: `${tplTitle} - ${contrato.nome}`.slice(0, 250),
-      base64_pdf: pdfBase64,
-      external_id: contrato.id,
-      lang: "pt-br",
-      disable_signer_emails: true,
-      brand_logo: "",
-      signers: [
-        {
-          name: contrato.nome,
-          // ZapSign exige email OU phone; usamos phone+blank_email se sem email
-          blank_email: true,
-          phone_country: "55",
-          phone_number: phoneNumber,
-          auth_mode: "assinaturaTela",
-          send_automatic_email: false,
-          send_automatic_whatsapp: !!body.enviar_whatsapp && !!phoneNumber,
-          require_selfie_photo: true,
-          require_document_photo: true,
-          selfie_validation_type: "none",
-          qualification: "Emitente",
-          external_id: contrato.id,
-        },
-      ],
-    };
-
     const base = zapsignBase();
-    const docResp = await fetch(`${base}/api/v1/docs/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(docPayload),
-    });
+    let docResp: Response;
+
+    if (useTemplate) {
+      // ---------- Modo MODELO da ZapSign ----------
+      // Conteúdo do PDF e regras de assinatura vêm do modelo configurado no painel.
+      const dataArr = buildTemplateData({
+        nome: contrato.nome,
+        cpf: contrato.cpf || "",
+        telefone: telefoneParaEnvio,
+        empresa: empresaInfo,
+        venda: vendaInfo,
+      });
+
+      const tplPayload: Record<string, unknown> = {
+        template_id: templateId,
+        signer_name: contrato.nome,
+        external_id: contrato.id,
+        lang: "pt-br",
+        disable_signer_emails: true,
+        send_automatic_email: false,
+        send_automatic_whatsapp: !!body.enviar_whatsapp && !!phoneNumber,
+        signer_phone_country: "55",
+        signer_phone_number: phoneNumber,
+        data: dataArr,
+      };
+
+      docResp = await fetch(`${base}/api/v1/models/create-doc/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(tplPayload),
+      });
+    } else {
+      // ---------- Modo PDF DINÂMICO (fallback) ----------
+      const vencimentoFmt = vendaInfo?.primeiro_vencimento ? formatDateBR(vendaInfo.primeiro_vencimento) : null;
+      const valorFmt = vendaInfo?.valor_total != null ? formatBRL(vendaInfo.valor_total) : null;
+      const pdfBytes = buildPdf({
+        title: tplTitle,
+        content: contrato.content,
+        vencimento: vencimentoFmt,
+        valorTotal: valorFmt,
+        numero: "Nº 1 DE 1",
+      });
+      const pdfBase64 = bytesToBase64(pdfBytes);
+
+      const docPayload: Record<string, unknown> = {
+        name: `${tplTitle} - ${contrato.nome}`.slice(0, 250),
+        base64_pdf: pdfBase64,
+        external_id: contrato.id,
+        lang: "pt-br",
+        disable_signer_emails: true,
+        brand_logo: "",
+        signers: [
+          {
+            name: contrato.nome,
+            blank_email: true,
+            phone_country: "55",
+            phone_number: phoneNumber,
+            auth_mode: "assinaturaTela",
+            send_automatic_email: false,
+            send_automatic_whatsapp: !!body.enviar_whatsapp && !!phoneNumber,
+            require_selfie_photo: true,
+            require_document_photo: true,
+            selfie_validation_type: "none",
+            qualification: "Emitente",
+            external_id: contrato.id,
+          },
+        ],
+      };
+
+      docResp = await fetch(`${base}/api/v1/docs/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(docPayload),
+      });
+    }
+
     const docText = await docResp.text();
     const docJson = safeJson(docText);
-    console.info("zapsign create doc status", docResp.status, "body", docText.slice(0, 1500));
+    console.info(`zapsign create doc (${useTemplate ? "TEMPLATE" : "DYNAMIC"}) status`, docResp.status, "body", docText.slice(0, 1500));
 
     if (!docResp.ok) {
       const errMsg = docJson?.detail || docJson?.message ||
@@ -222,6 +286,8 @@ Deno.serve(async (req) => {
       signature_external_id: docToken,
       signature_url: signUrl,
       signature_data: {
+        mode: useTemplate ? "template" : "dynamic",
+        template_id: useTemplate ? templateId : null,
         doc_token: docToken,
         open_id: openId,
         signer_token: signerToken,
@@ -264,6 +330,50 @@ function formatDateBR(iso: string): string {
 }
 function formatBRL(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+/** Monta o array `data` enviado para o endpoint de modelo da ZapSign. */
+function buildTemplateData(args: {
+  nome: string;
+  cpf: string;
+  telefone: string;
+  empresa: { nome: string; cnpj: string; cidade: string } | null;
+  venda: {
+    valor_total: number;
+    valor_entrada: number;
+    valor_financiado: number;
+    valor_parcela: number;
+    parcelas: number;
+    taxa_juros: number;
+    primeiro_vencimento: string | null;
+  } | null;
+}): Array<{ de: string; para: string }> {
+  const today = new Date();
+  const dataAtual = today.toLocaleDateString("pt-BR");
+  const cpfFmt = args.cpf.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  const venc = args.venda?.primeiro_vencimento ? formatDateBR(args.venda.primeiro_vencimento) : "";
+
+  const map: Record<string, string> = {
+    nome: args.nome || "",
+    cpf: cpfFmt || args.cpf || "",
+    telefone: args.telefone || "",
+    empresa: args.empresa?.nome || "",
+    empresa_cnpj: args.empresa?.cnpj || "",
+    cidade: args.empresa?.cidade || "",
+    data: dataAtual,
+    valor_total: args.venda ? formatBRL(args.venda.valor_total) : "",
+    valor_entrada: args.venda ? formatBRL(args.venda.valor_entrada) : "",
+    valor_financiado: args.venda ? formatBRL(args.venda.valor_financiado) : "",
+    valor_parcela: args.venda ? formatBRL(args.venda.valor_parcela) : "",
+    parcelas: args.venda ? String(args.venda.parcelas) : "",
+    taxa_juros: args.venda ? String(args.venda.taxa_juros) : "",
+    primeiro_vencimento: venc,
+    vencimento: venc,
+  };
+
+  return Object.entries(map)
+    .filter(([, v]) => v !== "")
+    .map(([de, para]) => ({ de, para }));
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
