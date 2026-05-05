@@ -357,5 +357,5 @@ function buildPdf(d: PdfArgs): jsPDF {
   doc.setFontSize(10);
   doc.text("Assinatura do emitente", pageWidth / 2, y + 14, { align: "center" });
 
-  return new Uint8Array(doc.output("arraybuffer"));
+  return doc;
 }
