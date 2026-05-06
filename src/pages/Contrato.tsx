@@ -11,8 +11,6 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -67,9 +65,6 @@ export default function Contrato() {
   const [syncing, setSyncing] = useState(false);
   const [downloadingSigned, setDownloadingSigned] = useState(false);
   const [phoneChoiceOpen, setPhoneChoiceOpen] = useState(false);
-  const [phoneChoice, setPhoneChoice] = useState<"cliente" | "empresa">("cliente");
-  const [enviarWhatsapp, setEnviarWhatsapp] = useState(false);
-  const [empresaTelefone, setEmpresaTelefone] = useState<string | null>(null);
   const [comprovanteFile, setComprovanteFile] = useState<File | null>(null);
 
   const handleDownloadSigned = async () => {
@@ -188,31 +183,6 @@ export default function Contrato() {
             });
           }
         }
-
-        // Carrega telefone da empresa para opção de envio do link de assinatura
-        const empresaIdResolve = (contract as ContractRow).empresa_id;
-        if (empresaIdResolve) {
-          const { data: emp } = await supabase
-            .from("empresas")
-            .select("telefone")
-            .eq("id", empresaIdResolve)
-            .maybeSingle();
-          setEmpresaTelefone(emp?.telefone ?? null);
-        } else if ((contract as ContractRow).venda_id) {
-          const { data: vendaEmp } = await supabase
-            .from("vendas")
-            .select("empresa_id")
-            .eq("id", (contract as ContractRow).venda_id!)
-            .maybeSingle();
-          if (vendaEmp?.empresa_id) {
-            const { data: emp } = await supabase
-              .from("empresas")
-              .select("telefone")
-              .eq("id", vendaEmp.empresa_id)
-              .maybeSingle();
-            setEmpresaTelefone(emp?.telefone ?? null);
-          }
-        }
       }
       if (template) setTpl(template as TemplateRow);
     })();
@@ -239,24 +209,11 @@ export default function Contrato() {
 
   const handleStartSignature = () => {
     if (!c) return;
-    // Abre o diálogo para o vendedor escolher o destinatário do link
-    setPhoneChoice(empresaTelefone ? "empresa" : "cliente");
     setPhoneChoiceOpen(true);
   };
 
   const submitSignature = async () => {
     if (!c) return;
-    if (enviarWhatsapp && phoneChoice === "empresa" && !empresaTelefone) {
-      toast.error("A empresa não tem telefone cadastrado", {
-        description: "Cadastre o telefone na página Empresas ou envie para o cliente.",
-      });
-      return;
-    }
-    if (enviarWhatsapp && phoneChoice === "cliente" && !c.telefone) {
-      toast.error("Cliente sem telefone cadastrado");
-      return;
-    }
-    const telefoneEnvio = phoneChoice === "empresa" ? (empresaTelefone ?? "") : (c.telefone ?? "");
     setPhoneChoiceOpen(false);
     setSigning(true);
 
@@ -285,8 +242,7 @@ export default function Contrato() {
     const { data, error } = await supabase.functions.invoke("zapsign-criar-documento", {
       body: {
         contrato_id: c.id,
-        telefone_envio: telefoneEnvio,
-        enviar_whatsapp: enviarWhatsapp,
+        enviar_whatsapp: false,
         comprovante_base64,
         comprovante_filename,
         comprovante_mime,
@@ -309,9 +265,7 @@ export default function Contrato() {
       signature_provider: "zapsign",
     });
     toast.success("Documento criado na ZapSign", {
-      description: enviarWhatsapp
-        ? `Link enviado por WhatsApp para ${telefoneEnvio}. Você também pode mostrar o QR Code abaixo.`
-        : "Use o link / QR Code abaixo para o cliente assinar.",
+      description: "Use o link / QR Code abaixo para o cliente assinar.",
     });
     setComprovanteFile(null);
     setSignDialog(true);
