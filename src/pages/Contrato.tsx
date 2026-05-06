@@ -539,22 +539,17 @@ export default function Contrato() {
             )}
           </div>
 
-          <div className="flex items-start gap-3 rounded-lg border p-3">
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setPhoneChoiceOpen(false)}>Cancelar</Button>
             <Button
               onClick={submitSignature}
-              disabled={
-                signing ||
-                (enviarWhatsapp && phoneChoice === "empresa" && !empresaTelefone) ||
-                (enviarWhatsapp && phoneChoice === "cliente" && !c.telefone)
-              }
+              disabled={signing}
               className="bg-gradient-primary"
             >
               {signing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PenLine className="mr-2 h-4 w-4" />}
-              {enviarWhatsapp ? "Gerar e enviar" : "Gerar link"}
+              Gerar link
             </Button>
+          </DialogFooter>
           </DialogFooter>
         </DialogContent>
       </Dialog>
