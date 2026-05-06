@@ -171,12 +171,6 @@ Deno.serve(async (req) => {
 
     const pdfBase64 = bytesToBase64(pdfBytes);
 
-    // ---------- Telefone formatado ----------
-    const telDigits = telefoneParaEnvio.replace(/\D/g, "");
-    const phoneNumber = telDigits.startsWith("55") && telDigits.length > 11
-      ? telDigits.slice(2)
-      : telDigits;
-
     // ---------- Cria documento na ZapSign ----------
     const docPayload: Record<string, unknown> = {
       name: `${tplTitle} - ${contrato.nome}`.slice(0, 250),
@@ -189,11 +183,11 @@ Deno.serve(async (req) => {
         {
           name: contrato.nome,
           blank_email: true,
-          phone_country: "55",
-          phone_number: phoneNumber,
+          blank_phone: true,
+          hide_phone: true,
           auth_mode: "assinaturaTela",
           send_automatic_email: false,
-          send_automatic_whatsapp: !!body.enviar_whatsapp && !!phoneNumber,
+          send_automatic_whatsapp: false,
           require_selfie_photo: true,
           require_document_photo: true,
           selfie_validation_type: "none",
