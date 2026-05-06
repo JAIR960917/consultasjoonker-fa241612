@@ -11,8 +11,6 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -67,9 +65,6 @@ export default function Contrato() {
   const [syncing, setSyncing] = useState(false);
   const [downloadingSigned, setDownloadingSigned] = useState(false);
   const [phoneChoiceOpen, setPhoneChoiceOpen] = useState(false);
-  const [phoneChoice, setPhoneChoice] = useState<"cliente" | "empresa">("cliente");
-  const [enviarWhatsapp, setEnviarWhatsapp] = useState(false);
-  const [empresaTelefone, setEmpresaTelefone] = useState<string | null>(null);
   const [comprovanteFile, setComprovanteFile] = useState<File | null>(null);
 
   const handleDownloadSigned = async () => {
