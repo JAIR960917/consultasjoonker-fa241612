@@ -425,15 +425,6 @@ export default function Consulta() {
 
       <Card className="shadow-card print:hidden">
         <CardContent className="p-6 space-y-4">
-          <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
-            <div>
-              <p className="text-sm font-medium">Modo simulação</p>
-              <p className="text-xs text-muted-foreground">
-                Use para simular uma venda sem consultar o Serasa (ex.: testes/treinamento).
-              </p>
-            </div>
-            <Switch checked={modoSimulacao} onCheckedChange={setModoSimulacao} />
-          </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1 space-y-2">
@@ -472,28 +463,6 @@ export default function Consulta() {
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed bg-muted/20 p-3">
-            <div>
-              <p className="text-sm font-medium flex items-center gap-2">
-                <FlaskConical className="h-4 w-4 text-primary" />
-                Testes de homologação Serasa
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Consulta os 3 CPFs de homologação (003-53, 011-63, 012-44) e gera um resumo para anexar ao chamado da Serasa.
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={rodarTestesHomologacao}
-              disabled={homologBusy}
-            >
-              {homologBusy
-                ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Rodando...</>
-                : <>Rodar 3 testes</>
-              }
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
