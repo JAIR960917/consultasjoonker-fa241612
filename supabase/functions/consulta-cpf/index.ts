@@ -146,7 +146,7 @@ async function consultarSerasa(cpf: string, federalUnit = "SP"): Promise<SerasaR
   }
 
   const url = new URL(REPORT_URL);
-  url.searchParams.set("reportName", "PERFIL_DE_CREDITO_BASICO_PF");
+  url.searchParams.set("reportName", "RELATORIO_BASICO_PF_PME");
   url.searchParams.append("optionalFeatures", "SCORE_POSITIVO");
   // SCORE_POSITIVO exige federalUnit (UF) como parâmetro obrigatório (UAT e PROD)
   url.searchParams.set("federalUnit", federalUnit);
