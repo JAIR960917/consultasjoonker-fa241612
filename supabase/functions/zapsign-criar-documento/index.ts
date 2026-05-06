@@ -18,6 +18,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// PNG 1x1 transparente em base64 — usado para pré-preencher a assinatura do signatário,
+// permitindo pular a etapa de desenho na tela e finalizar logo após selfie + documento.
+const TRANSPARENT_SIGNATURE_PNG =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
 function zapsignBase() {
   const env = (Deno.env.get("ZAPSIGN_ENV") || "sandbox").toLowerCase();
   return env.startsWith("prod")
