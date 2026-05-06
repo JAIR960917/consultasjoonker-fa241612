@@ -242,8 +242,7 @@ export default function Contrato() {
     const { data, error } = await supabase.functions.invoke("zapsign-criar-documento", {
       body: {
         contrato_id: c.id,
-        telefone_envio: telefoneEnvio,
-        enviar_whatsapp: enviarWhatsapp,
+        enviar_whatsapp: false,
         comprovante_base64,
         comprovante_filename,
         comprovante_mime,
@@ -266,9 +265,7 @@ export default function Contrato() {
       signature_provider: "zapsign",
     });
     toast.success("Documento criado na ZapSign", {
-      description: enviarWhatsapp
-        ? `Link enviado por WhatsApp para ${telefoneEnvio}. Você também pode mostrar o QR Code abaixo.`
-        : "Use o link / QR Code abaixo para o cliente assinar.",
+      description: "Use o link / QR Code abaixo para o cliente assinar.",
     });
     setComprovanteFile(null);
     setSignDialog(true);
