@@ -550,7 +550,6 @@ export default function Contrato() {
               Gerar link
             </Button>
           </DialogFooter>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </AppLayout>
