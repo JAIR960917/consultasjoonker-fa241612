@@ -539,76 +539,15 @@ export default function Contrato() {
             )}
           </div>
 
-          <div className="flex items-start gap-3 rounded-lg border p-3">
-            <Checkbox
-              id="enviar-whatsapp"
-              checked={enviarWhatsapp}
-              onCheckedChange={(v) => setEnviarWhatsapp(v === true)}
-              className="mt-0.5"
-            />
-            <div className="flex-1">
-              <Label htmlFor="enviar-whatsapp" className="text-sm font-medium cursor-pointer">
-                Enviar link automaticamente por WhatsApp
-              </Label>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Se desmarcado, o link aparece apenas aqui na tela para você compartilhar manualmente.
-              </p>
-            </div>
-          </div>
-
-          {enviarWhatsapp && (
-            <RadioGroup
-              value={phoneChoice}
-              onValueChange={(v) => setPhoneChoice(v as "cliente" | "empresa")}
-              className="space-y-2"
-            >
-              <label
-                htmlFor="phone-empresa"
-                className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ${
-                  phoneChoice === "empresa" ? "border-primary bg-primary/5" : "hover:bg-muted/40"
-                } ${!empresaTelefone ? "opacity-60" : ""}`}
-              >
-                <RadioGroupItem id="phone-empresa" value="empresa" disabled={!empresaTelefone} className="mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Telefone da loja</p>
-                  <p className="text-xs text-muted-foreground">
-                    {empresaTelefone
-                      ? `O link irá para ${empresaTelefone}`
-                      : "Nenhum telefone cadastrado para a empresa. Cadastre em Empresas."}
-                  </p>
-                </div>
-              </label>
-
-              <label
-                htmlFor="phone-cliente"
-                className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ${
-                  phoneChoice === "cliente" ? "border-primary bg-primary/5" : "hover:bg-muted/40"
-                }`}
-              >
-                <RadioGroupItem id="phone-cliente" value="cliente" className="mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Telefone do cliente</p>
-                  <p className="text-xs text-muted-foreground">
-                    {c.telefone ? `O link irá para ${c.telefone}` : "Cliente sem telefone cadastrado."}
-                  </p>
-                </div>
-              </label>
-            </RadioGroup>
-          )}
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setPhoneChoiceOpen(false)}>Cancelar</Button>
             <Button
               onClick={submitSignature}
-              disabled={
-                signing ||
-                (enviarWhatsapp && phoneChoice === "empresa" && !empresaTelefone) ||
-                (enviarWhatsapp && phoneChoice === "cliente" && !c.telefone)
-              }
+              disabled={signing}
               className="bg-gradient-primary"
             >
               {signing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PenLine className="mr-2 h-4 w-4" />}
-              {enviarWhatsapp ? "Gerar e enviar" : "Gerar link"}
+              Gerar link
             </Button>
           </DialogFooter>
         </DialogContent>
