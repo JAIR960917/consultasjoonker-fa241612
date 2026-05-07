@@ -737,7 +737,7 @@ export default function Consulta() {
                             >
                               <p className="text-xs opacity-80">{n}x</p>
                               <p className="font-bold">{brl(pmt)}</p>
-                              <p className="text-[10px] opacity-70">{taxa}% a.m.</p>
+                              
                             </button>
                           );
                         })}
