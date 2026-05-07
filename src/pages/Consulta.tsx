@@ -757,9 +757,8 @@ export default function Consulta() {
 
                     {parcelas && (
                       <div className="mt-6">
-                        <div className="mb-2 flex items-center justify-between">
+                        <div className="mb-2">
                           <h3 className="text-sm font-semibold">Tabela de amortização (Price)</h3>
-                          <p className="text-xs text-muted-foreground">Taxa: {taxaScore}% a.m.</p>
                         </div>
                         <div className="rounded-lg border overflow-hidden">
                           <div className="max-h-80 overflow-auto">
