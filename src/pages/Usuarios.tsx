@@ -101,6 +101,7 @@ export default function Usuarios() {
       cidade: r.cidade ?? "",
       empresa_id: r.empresa_id ?? "",
       role: r.role === "admin" ? "admin" : "gerente",
+      password: "",
     });
   };
 
