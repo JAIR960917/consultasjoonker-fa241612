@@ -100,7 +100,7 @@ export default function Usuarios() {
     setEditForm({
       cidade: r.cidade ?? "",
       empresa_id: r.empresa_id ?? "",
-      role: r.role === "admin" ? "admin" : "gerente",
+      role: r.role === "admin" ? "admin" : r.role === "desenvolvedor" ? "desenvolvedor" : "gerente",
       password: "",
     });
   };
@@ -157,7 +157,7 @@ export default function Usuarios() {
   };
 
   const roleLabel = (r: string) =>
-    r === "admin" ? "Administrador" : r === "gerente" ? "Gerente" : r;
+    r === "admin" ? "Administrador" : r === "desenvolvedor" ? "Desenvolvedor" : r === "gerente" ? "Gerente" : r;
 
   const onEmpresaChange = (id: string) => {
     const emp = empresas.find((e) => e.id === id);
