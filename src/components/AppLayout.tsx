@@ -20,10 +20,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const items = [
     { to: "/", label: "Dashboard", icon: LayoutDashboard, admin: false },
     { to: "/consulta", label: "Nova consulta", icon: Search, admin: false },
-    { to: "/historico", label: "Histórico", icon: History, admin: false },
     { to: "/contratos", label: "Contratos", icon: FileSignature, admin: false },
-    { to: "/consultas-salvas", label: "Consultas Salvas", icon: Database, admin: false },
-    { to: "/relatorios-diarios", label: "Relatórios Diários", icon: ClipboardList, admin: false },
+    { to: "/historico", label: "Histórico", icon: History, admin: true },
+    { to: "/consultas-salvas", label: "Consultas Salvas", icon: Database, admin: true },
+    { to: "/relatorios-diarios", label: "Relatórios Diários", icon: ClipboardList, admin: true },
     { to: "/configuracoes", label: "Configurações", icon: Settings, admin: true },
     { to: "/usuarios", label: "Usuários", icon: Users, admin: true },
     { to: "/empresas", label: "Empresas", icon: Building2, admin: true },

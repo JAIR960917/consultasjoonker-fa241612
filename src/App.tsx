@@ -36,15 +36,15 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/consulta" element={<ProtectedRoute><Consulta /></ProtectedRoute>} />
-            <Route path="/historico" element={<ProtectedRoute><Historico /></ProtectedRoute>} />
+            <Route path="/historico" element={<ProtectedRoute adminOnly><Historico /></ProtectedRoute>} />
             <Route path="/configuracoes" element={<ProtectedRoute adminOnly><Configuracoes /></ProtectedRoute>} />
             <Route path="/usuarios" element={<ProtectedRoute adminOnly><Usuarios /></ProtectedRoute>} />
             <Route path="/empresas" element={<ProtectedRoute adminOnly><Empresas /></ProtectedRoute>} />
             <Route path="/contratos" element={<ProtectedRoute><Contratos /></ProtectedRoute>} />
             <Route path="/contrato/:id" element={<ProtectedRoute><Contrato /></ProtectedRoute>} />
             <Route path="/relatorios-empresa" element={<ProtectedRoute adminOnly><RelatoriosEmpresa /></ProtectedRoute>} />
-            <Route path="/consultas-salvas" element={<ProtectedRoute><ConsultasSalvas /></ProtectedRoute>} />
-            <Route path="/relatorios-diarios" element={<ProtectedRoute><RelatoriosDiarios /></ProtectedRoute>} />
+            <Route path="/consultas-salvas" element={<ProtectedRoute adminOnly><ConsultasSalvas /></ProtectedRoute>} />
+            <Route path="/relatorios-diarios" element={<ProtectedRoute adminOnly><RelatoriosDiarios /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
