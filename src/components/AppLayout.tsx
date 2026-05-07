@@ -6,7 +6,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
-  LayoutDashboard, Search, History, Settings, Users, LogOut, Wallet, FileSignature, Sun, Moon, Menu, Building2, BarChart3, Database, ClipboardList,
+  LayoutDashboard, Search, History, Settings, Users, LogOut, Wallet, FileSignature, Sun, Moon, Menu, Building2, BarChart3, Database, ClipboardList, KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,17 +17,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const nav = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const items = [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard, admin: false },
-    { to: "/consulta", label: "Nova consulta", icon: Search, admin: false },
-    { to: "/contratos", label: "Contratos", icon: FileSignature, admin: false },
-    { to: "/historico", label: "Histórico", icon: History, admin: true },
-    { to: "/consultas-salvas", label: "Consultas Salvas", icon: Database, admin: true },
-    { to: "/relatorios-diarios", label: "Relatórios Diários", icon: ClipboardList, admin: false },
-    { to: "/configuracoes", label: "Configurações", icon: Settings, admin: true },
-    { to: "/usuarios", label: "Usuários", icon: Users, admin: true },
-    { to: "/empresas", label: "Empresas", icon: Building2, admin: true },
-    { to: "/relatorios-empresa", label: "Relatórios por Empresa", icon: BarChart3, admin: true },
+  type Item = { to: string; label: string; icon: typeof LayoutDashboard; roles: Array<"admin"|"gerente"|"desenvolvedor"> };
+  const items: Item[] = [
+    { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "gerente"] },
+    { to: "/consulta", label: "Nova consulta", icon: Search, roles: ["admin", "gerente"] },
+    { to: "/contratos", label: "Contratos", icon: FileSignature, roles: ["admin", "gerente"] },
+    { to: "/historico", label: "Histórico", icon: History, roles: ["admin"] },
+    { to: "/consultas-salvas", label: "Consultas Salvas", icon: Database, roles: ["admin"] },
+    { to: "/relatorios-diarios", label: "Relatórios Diários", icon: ClipboardList, roles: ["admin", "gerente"] },
+    { to: "/configuracoes", label: "Configurações", icon: Settings, roles: ["admin"] },
+    { to: "/usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
+    { to: "/empresas", label: "Empresas", icon: Building2, roles: ["admin"] },
+    { to: "/relatorios-empresa", label: "Relatórios por Empresa", icon: BarChart3, roles: ["admin"] },
+    { to: "/credenciais", label: "Credenciais", icon: KeyRound, roles: ["admin", "desenvolvedor"] },
   ];
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
@@ -51,7 +53,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-auto">
-        {items.filter((i) => !i.admin || role === "admin").map((i) => (
+        {items.filter((i) => role && i.roles.includes(role)).map((i) => (
           <NavLink
             key={i.to}
             to={i.to}
