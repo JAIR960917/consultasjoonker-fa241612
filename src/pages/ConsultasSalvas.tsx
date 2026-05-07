@@ -190,6 +190,83 @@ export default function ConsultasSalvas() {
           </Card>
         </div>
 
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" /> Consultas por gerente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Filtros</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                <div>
+                  <Label className="text-xs">Gerente</Label>
+                  <Select value={gerenteFiltro} onValueChange={setGerenteFiltro}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {operadores.map((o) => (
+                        <SelectItem key={o.user_id} value={o.user_id}>
+                          {o.full_name || o.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Data inicial</Label>
+                  <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Data final</Label>
+                  <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={aplicarFiltros} className="flex-1">Aplicar</Button>
+                  <Button variant="outline" onClick={limparFiltros}>Limpar</Button>
+                </div>
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                Total de consultas no período: <strong className="text-foreground">{consultasFiltradas.length}</strong>
+              </div>
+
+              {porGerente.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma consulta no período selecionado.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Gerente</TableHead>
+                        <TableHead>E-mail</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-right">Sucesso</TableHead>
+                        <TableHead className="text-right">Erros</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {porGerente.map((g) => (
+                        <TableRow key={g.user_id}>
+                          <TableCell className="font-medium">{g.nome}</TableCell>
+                          <TableCell className="text-muted-foreground">{g.email}</TableCell>
+                          <TableCell className="text-right font-bold">{g.total}</TableCell>
+                          <TableCell className="text-right text-success">{g.sucesso}</TableCell>
+                          <TableCell className="text-right text-destructive">{g.erro}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Buscar</CardTitle>
