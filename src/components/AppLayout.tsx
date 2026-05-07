@@ -19,17 +19,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   type Item = { to: string; label: string; icon: typeof LayoutDashboard; roles: Array<"admin"|"gerente"|"desenvolvedor"> };
   const items: Item[] = [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "gerente"] },
-    { to: "/consulta", label: "Nova consulta", icon: Search, roles: ["admin", "gerente"] },
-    { to: "/contratos", label: "Contratos", icon: FileSignature, roles: ["admin", "gerente"] },
-    { to: "/historico", label: "Histórico", icon: History, roles: ["admin"] },
-    { to: "/consultas-salvas", label: "Consultas Salvas", icon: Database, roles: ["admin"] },
-    { to: "/relatorios-diarios", label: "Relatórios Diários", icon: ClipboardList, roles: ["admin", "gerente"] },
-    { to: "/configuracoes", label: "Configurações", icon: Settings, roles: ["admin"] },
-    { to: "/usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
-    { to: "/empresas", label: "Empresas", icon: Building2, roles: ["admin"] },
-    { to: "/relatorios-empresa", label: "Relatórios por Empresa", icon: BarChart3, roles: ["admin"] },
-    { to: "/credenciais", label: "Credenciais", icon: KeyRound, roles: ["admin", "desenvolvedor"] },
+    { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "gerente", "desenvolvedor"] },
+    { to: "/consulta", label: "Nova consulta", icon: Search, roles: ["admin", "gerente", "desenvolvedor"] },
+    { to: "/contratos", label: "Contratos", icon: FileSignature, roles: ["admin", "gerente", "desenvolvedor"] },
+    { to: "/historico", label: "Histórico", icon: History, roles: ["admin", "desenvolvedor"] },
+    { to: "/consultas-salvas", label: "Consultas Salvas", icon: Database, roles: ["admin", "desenvolvedor"] },
+    { to: "/relatorios-diarios", label: "Relatórios Diários", icon: ClipboardList, roles: ["admin", "gerente", "desenvolvedor"] },
+    { to: "/configuracoes", label: "Configurações", icon: Settings, roles: ["admin", "desenvolvedor"] },
+    { to: "/usuarios", label: "Usuários", icon: Users, roles: ["admin", "desenvolvedor"] },
+    { to: "/empresas", label: "Empresas", icon: Building2, roles: ["admin", "desenvolvedor"] },
+    { to: "/relatorios-empresa", label: "Relatórios por Empresa", icon: BarChart3, roles: ["admin", "desenvolvedor"] },
+    { to: "/credenciais", label: "Credenciais", icon: KeyRound, roles: ["desenvolvedor"] },
   ];
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
