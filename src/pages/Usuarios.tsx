@@ -292,7 +292,7 @@ export default function Usuarios() {
                   <SelectContent>
                     <SelectItem value="gerente">Gerente</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
-                    {currentRole === "desenvolvedor" && <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>}
+                    {(currentRole === "desenvolvedor" || (currentRole === "admin" && !devExists)) && <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>
