@@ -360,6 +360,36 @@ export type Database = {
         }
         Relationships: []
       }
+      empresa_credenciais: {
+        Row: {
+          cora_certificate: string | null
+          cora_client_id: string | null
+          cora_private_key: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          cora_certificate?: string | null
+          cora_client_id?: string | null
+          cora_private_key?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          cora_certificate?: string | null
+          cora_client_id?: string | null
+          cora_private_key?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       empresas: {
         Row: {
           ativo: boolean
@@ -728,7 +758,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "gerente"
+      app_role: "admin" | "gerente" | "desenvolvedor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -856,7 +886,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "gerente"],
+      app_role: ["admin", "gerente", "desenvolvedor"],
     },
   },
 } as const
