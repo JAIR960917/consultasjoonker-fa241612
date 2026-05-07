@@ -46,6 +46,15 @@ Deno.serve(async (req) => {
     await adminClient.from("user_roles").delete().eq("user_id", target_user_id);
     await adminClient.from("user_roles").insert({ user_id: target_user_id, role });
 
+    const newPassword = typeof body.password === "string" ? body.password : "";
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        return new Response(JSON.stringify({ error: "Senha deve ter pelo menos 6 caracteres" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const { error: pErr } = await adminClient.auth.admin.updateUserById(target_user_id, { password: newPassword });
+      if (pErr) throw pErr;
+    }
+
     return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error(e);
