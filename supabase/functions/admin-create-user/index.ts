@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     const full_name = String(body.full_name || "").trim();
     const cidade = String(body.cidade || "").trim();
     const empresa_id = body.empresa_id ? String(body.empresa_id) : null;
-    const role = body.role === "admin" ? "admin" : "gerente";
+    const role = body.role === "admin" ? "admin" : body.role === "desenvolvedor" ? "desenvolvedor" : "gerente";
 
     if (!email || password.length < 6) {
       return new Response(JSON.stringify({ error: "Email e senha (>=6) obrigatórios" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -52,10 +52,10 @@ Deno.serve(async (req) => {
     });
     if (error) throw error;
 
-    // Trigger já criou perfil + role 'gerente'. Se for admin, ajusta:
-    if (role === "admin") {
+    // Trigger já criou perfil + role 'gerente'. Se for outro papel, ajusta:
+    if (role !== "gerente") {
       await adminClient.from("user_roles").delete().eq("user_id", created.user!.id);
-      await adminClient.from("user_roles").insert({ user_id: created.user!.id, role: "admin" });
+      await adminClient.from("user_roles").insert({ user_id: created.user!.id, role });
     }
     // Atualiza dados que o trigger não cobre/sobrescreve
     await adminClient.from("profiles").update({

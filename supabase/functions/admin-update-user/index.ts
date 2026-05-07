@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
 
     const cidade = String(body.cidade ?? "").trim();
     const empresa_id = body.empresa_id ? String(body.empresa_id) : null;
-    const role = body.role === "admin" ? "admin" : "gerente";
+    const role = body.role === "admin" ? "admin" : body.role === "desenvolvedor" ? "desenvolvedor" : "gerente";
 
     if (role === "gerente" && !empresa_id) {
       return new Response(JSON.stringify({ error: "Gerente precisa estar vinculado a uma empresa" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
