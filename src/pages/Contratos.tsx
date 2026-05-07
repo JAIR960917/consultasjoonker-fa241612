@@ -54,6 +54,7 @@ export default function Contratos() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("todos");
   const [search, setSearch] = useState("");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -88,14 +89,45 @@ export default function Contratos() {
     pendente: list.filter((c) => c.status === "pendente").length,
   }), [list]);
 
-  const handleDownload = (c: ContractRow) => {
-    if (!tpl) return;
-    // Se tiver PDF oficial assinado (Assertiva), abre direto
-    if (c.status === "assinado" && c.signature_data?.signed_pdf_url) {
-      window.open(c.signature_data.signed_pdf_url, "_blank");
+  const handleDownload = async (c: ContractRow) => {
+    // Contrato assinado: baixa o PDF oficial gerado na ZapSign
+    if (c.status === "assinado") {
+      setDownloadingId(c.id);
+      try {
+        const { data, error } = await supabase.functions.invoke("zapsign-baixar-assinado", {
+          body: { contrato_id: c.id },
+        });
+        if (error) throw error;
+        if (!data?.ok) {
+          toast.error("Documento ainda não disponível", {
+            description: data?.error ?? "A ZapSign ainda não disponibilizou o PDF assinado.",
+          });
+          return;
+        }
+        if (data.pdf_base64) {
+          const bin = atob(data.pdf_base64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          const blob = new Blob([bytes], { type: "application/pdf" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = data.filename ?? `contrato-assinado-${c.nome.replace(/\s+/g, "_")}.pdf`;
+          a.click();
+          URL.revokeObjectURL(url);
+          toast.success("Contrato assinado baixado");
+        } else if (data.pdf_url) {
+          window.open(data.pdf_url, "_blank");
+        }
+      } catch (e: any) {
+        toast.error("Erro ao baixar contrato assinado", { description: e?.message });
+      } finally {
+        setDownloadingId(null);
+      }
       return;
     }
-    // Caso contrário, gera cópia local
+    // Não assinado: gera cópia local (preview)
+    if (!tpl) return;
     downloadContractPdf(
       {
         title: tpl.title,
