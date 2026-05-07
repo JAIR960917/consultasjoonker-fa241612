@@ -54,28 +54,44 @@ Deno.serve(async (req) => {
     }
 
     const sigData: any = contrato.signature_data ?? {};
-    let signedFile: string | null = sigData?.signed_file ?? sigData?.raw?.signed_file ?? null;
 
-    // Se ainda não temos signed_file, busca no GET /docs/{token}/
-    if (!signedFile && contrato.signature_external_id) {
+    // URLs assinadas da S3/ZapSign expiram (parâmetro Expires). Sempre buscamos
+    // uma URL fresca via GET /docs/{token}/ para evitar HTTP 403.
+    async function fetchFreshSignedFile(): Promise<string | null> {
+      if (!contrato.signature_external_id) return null;
       const resp = await fetch(`${zapsignBase()}/api/v1/docs/${contrato.signature_external_id}/`, {
         headers: { Authorization: `Bearer ${apiToken}`, Accept: "application/json" },
       });
       const docJson = await resp.json().catch(() => null);
-      signedFile = docJson?.signed_file ?? null;
-      if (signedFile) {
+      const fresh = docJson?.signed_file ?? null;
+      if (fresh) {
         await admin.from("contracts").update({
-          signature_data: { ...sigData, signed_file: signedFile, raw: docJson },
+          signature_data: { ...sigData, signed_file: fresh, raw: docJson },
         }).eq("id", contrato.id);
       }
+      return fresh;
+    }
+
+    let signedFile: string | null = await fetchFreshSignedFile();
+
+    // Fallback para o cache, caso a chamada externa falhe
+    if (!signedFile) {
+      signedFile = sigData?.signed_file ?? sigData?.raw?.signed_file ?? null;
     }
 
     if (!signedFile) {
       return json({ ok: false, error: "PDF assinado ainda não disponível na ZapSign" }, 404);
     }
 
-    // Baixa o PDF
-    const pdfResp = await fetch(signedFile);
+    // Baixa o PDF — se 403 (URL expirada), tenta uma vez mais com URL fresca
+    let pdfResp = await fetch(signedFile);
+    if (pdfResp.status === 403) {
+      const refreshed = await fetchFreshSignedFile();
+      if (refreshed && refreshed !== signedFile) {
+        signedFile = refreshed;
+        pdfResp = await fetch(signedFile);
+      }
+    }
     if (!pdfResp.ok) {
       return json({ ok: false, error: `Falha ao baixar PDF (HTTP ${pdfResp.status})`, pdf_url: signedFile }, 502);
     }
