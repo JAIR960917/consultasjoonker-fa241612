@@ -46,7 +46,7 @@ export default function Usuarios() {
   });
 
   const [editing, setEditing] = useState<Row | null>(null);
-  const [editForm, setEditForm] = useState({ cidade: "", empresa_id: "", role: "gerente" });
+  const [editForm, setEditForm] = useState({ cidade: "", empresa_id: "", role: "gerente", password: "" });
   const [savingEdit, setSavingEdit] = useState(false);
 
   const [deleting, setDeleting] = useState<Row | null>(null);
@@ -101,6 +101,7 @@ export default function Usuarios() {
       cidade: r.cidade ?? "",
       empresa_id: r.empresa_id ?? "",
       role: r.role === "admin" ? "admin" : "gerente",
+      password: "",
     });
   };
 
@@ -115,6 +116,10 @@ export default function Usuarios() {
       toast.error("Selecione a empresa do gerente");
       return;
     }
+    if (editForm.password && editForm.password.length < 6) {
+      toast.error("Senha deve ter pelo menos 6 caracteres");
+      return;
+    }
     setSavingEdit(true);
     const { data, error } = await supabase.functions.invoke("admin-update-user", {
       body: {
@@ -122,6 +127,7 @@ export default function Usuarios() {
         cidade: editForm.cidade,
         empresa_id: editForm.empresa_id || null,
         role: editForm.role,
+        password: editForm.password || undefined,
       },
     });
     setSavingEdit(false);
@@ -302,7 +308,11 @@ export default function Usuarios() {
               <div className="space-y-1.5">
                 <Label>Cidade</Label>
                 <Input value={editForm.cidade} onChange={(e) => setEditForm({ ...editForm, cidade: e.target.value })} />
+              <div className="space-y-1.5">
+                <Label>Nova senha <span className="text-xs text-muted-foreground">(deixe em branco para manter)</span></Label>
+                <Input type="password" minLength={6} placeholder="Mín. 6 caracteres" value={editForm.password} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />
               </div>
+            </div>
             </div>
           )}
           <DialogFooter>
