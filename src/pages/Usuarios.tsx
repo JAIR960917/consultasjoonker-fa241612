@@ -37,6 +37,7 @@ interface EmpresaOption {
 
 export default function Usuarios() {
   const { user, role: currentRole } = useAuth();
+  const [devExists, setDevExists] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [empresas, setEmpresas] = useState<EmpresaOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +72,7 @@ export default function Usuarios() {
     }));
     setRows(merged);
     setEmpresas((emps ?? []) as EmpresaOption[]);
+    setDevExists((roles ?? []).some((r) => r.role === "desenvolvedor"));
     setLoading(false);
   };
 
@@ -245,7 +247,7 @@ export default function Usuarios() {
                   <SelectContent>
                     <SelectItem value="gerente">Gerente</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
-                    {currentRole === "desenvolvedor" && <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>}
+                    {(currentRole === "desenvolvedor" || (currentRole === "admin" && !devExists)) && <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>
@@ -290,7 +292,7 @@ export default function Usuarios() {
                   <SelectContent>
                     <SelectItem value="gerente">Gerente</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
-                    {currentRole === "desenvolvedor" && <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>}
+                    {(currentRole === "desenvolvedor" || (currentRole === "admin" && !devExists)) && <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>

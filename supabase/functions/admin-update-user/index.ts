@@ -39,7 +39,11 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Gerente precisa estar vinculado a uma empresa" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     if (role === "desenvolvedor" && !isDev) {
-      return new Response(JSON.stringify({ error: "Apenas um desenvolvedor pode promover outro a desenvolvedor" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const { count } = await userClient
+        .from("user_roles").select("*", { count: "exact", head: true }).eq("role", "desenvolvedor");
+      if ((count ?? 0) > 0) {
+        return new Response(JSON.stringify({ error: "Já existe um desenvolvedor cadastrado. Apenas ele pode promover outro." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
     // Apenas desenvolvedor pode editar/rebaixar outro desenvolvedor
     {
