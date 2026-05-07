@@ -22,7 +22,8 @@ export function ProtectedRoute({
     );
   }
   if (!user) return <Navigate to="/login" state={{ from: loc }} replace />;
-  if (adminOnly && role !== "admin") return <Navigate to="/" replace />;
+  // Desenvolvedor tem acesso total (equivalente a admin), exceto quando rota exige role específico via allowedRoles
+  if (adminOnly && role !== "admin" && role !== "desenvolvedor") return <Navigate to="/" replace />;
   if (allowedRoles && (!role || !allowedRoles.includes(role))) return <Navigate to="/" replace />;
   return children;
 }

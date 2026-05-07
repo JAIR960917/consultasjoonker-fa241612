@@ -20,9 +20,11 @@ Deno.serve(async (req) => {
     const { data: u } = await userClient.auth.getUser();
     if (!u.user) return new Response(JSON.stringify({ error: "Sessão inválida" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { data: roleRow } = await userClient
-      .from("user_roles").select("role").eq("user_id", u.user.id).eq("role", "admin").maybeSingle();
-    if (!roleRow) return new Response(JSON.stringify({ error: "Apenas admin" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const { data: callerRoles } = await userClient
+      .from("user_roles").select("role").eq("user_id", u.user.id);
+    const isDev = !!callerRoles?.some((r) => r.role === "desenvolvedor");
+    const isAdmin = !!callerRoles?.some((r) => r.role === "admin");
+    if (!isAdmin && !isDev) return new Response(JSON.stringify({ error: "Apenas admin ou desenvolvedor" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const body = await req.json();
     const target_user_id = String(body.user_id || "");
@@ -35,6 +37,18 @@ Deno.serve(async (req) => {
 
     if (role === "gerente" && !empresa_id) {
       return new Response(JSON.stringify({ error: "Gerente precisa estar vinculado a uma empresa" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (role === "desenvolvedor" && !isDev) {
+      return new Response(JSON.stringify({ error: "Apenas um desenvolvedor pode promover outro a desenvolvedor" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    // Apenas desenvolvedor pode editar/rebaixar outro desenvolvedor
+    {
+      const { data: targetRoles } = await userClient
+        .from("user_roles").select("role").eq("user_id", target_user_id);
+      const targetIsDev = !!targetRoles?.some((r) => r.role === "desenvolvedor");
+      if (targetIsDev && !isDev) {
+        return new Response(JSON.stringify({ error: "Apenas um desenvolvedor pode editar outro desenvolvedor" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     const adminClient = createClient(
