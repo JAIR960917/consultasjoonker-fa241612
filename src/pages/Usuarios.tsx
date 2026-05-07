@@ -36,7 +36,7 @@ interface EmpresaOption {
 }
 
 export default function Usuarios() {
-  const { user } = useAuth();
+  const { user, role: currentRole } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [empresas, setEmpresas] = useState<EmpresaOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -245,7 +245,7 @@ export default function Usuarios() {
                   <SelectContent>
                     <SelectItem value="gerente">Gerente</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>
+                    {currentRole === "desenvolvedor" && <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>
@@ -290,7 +290,7 @@ export default function Usuarios() {
                   <SelectContent>
                     <SelectItem value="gerente">Gerente</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>
+                    {currentRole === "desenvolvedor" && <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>
