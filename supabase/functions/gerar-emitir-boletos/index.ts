@@ -126,13 +126,23 @@ Deno.serve(async (req) => {
       parcelas = criadas ?? [];
     }
 
-    // 4) Setup mTLS Cora — busca secrets por slug da empresa, com fallback global
+    // 4) Setup mTLS Cora — tenta credenciais salvas no banco (por desenvolvedor),
+    //    senão usa secrets por slug, senão fallback global
+    let dbCreds: { cora_client_id: string | null; cora_certificate: string | null; cora_private_key: string | null } | null = null;
+    if (contrato.empresa_id) {
+      const { data } = await admin
+        .from("empresa_credenciais")
+        .select("cora_client_id, cora_certificate, cora_private_key")
+        .eq("empresa_id", contrato.empresa_id)
+        .maybeSingle();
+      dbCreds = data ?? null;
+    }
     const suffix = empresaSlug ? `_${empresaSlug}` : "";
-    const clientId = Deno.env.get(`CORA_CLIENT_ID${suffix}`) ?? Deno.env.get("CORA_CLIENT_ID");
-    const certPem  = Deno.env.get(`CORA_CERTIFICATE${suffix}`) ?? Deno.env.get("CORA_CERTIFICATE");
-    const keyPem   = Deno.env.get(`CORA_PRIVATE_KEY${suffix}`) ?? Deno.env.get("CORA_PRIVATE_KEY");
+    const clientId = dbCreds?.cora_client_id || Deno.env.get(`CORA_CLIENT_ID${suffix}`) || Deno.env.get("CORA_CLIENT_ID");
+    const certPem  = dbCreds?.cora_certificate || Deno.env.get(`CORA_CERTIFICATE${suffix}`) || Deno.env.get("CORA_CERTIFICATE");
+    const keyPem   = dbCreds?.cora_private_key || Deno.env.get(`CORA_PRIVATE_KEY${suffix}`) || Deno.env.get("CORA_PRIVATE_KEY");
     if (!clientId || !certPem || !keyPem) {
-      return json({ ok: false, error: `Secrets Cora ausentes${empresaSlug ? ` para empresa ${empresaSlug}` : ""}` }, 500);
+      return json({ ok: false, error: `Credenciais Cora ausentes${empresaSlug ? ` para empresa ${empresaSlug}` : ""}` }, 500);
     }
 
     const httpClient = buildMtlsClient(certPem, keyPem);
