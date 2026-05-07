@@ -204,7 +204,8 @@ export default function Contratos() {
               <TableBody>
                 {filtered.map((c) => {
                   const s = STATUS_LABEL[c.status] ?? STATUS_LABEL.pendente;
-                  const hasOfficial = !!c.signature_data?.signed_pdf_url;
+                  const isSigned = c.status === "assinado";
+                  const isDownloading = downloadingId === c.id;
                   return (
                     <TableRow key={c.id} className="cursor-pointer hover:bg-muted/30" onClick={() => nav(`/contrato/${c.id}`)}>
                       <TableCell className="font-medium">{c.nome}</TableCell>
@@ -227,9 +228,12 @@ export default function Contratos() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleDownload(c)}
-                            title={hasOfficial ? "Baixar PDF assinado oficial" : "Baixar cópia em PDF"}
+                            disabled={isDownloading}
+                            title={isSigned ? "Baixar contrato assinado (ZapSign)" : "Baixar cópia em PDF"}
                           >
-                            {hasOfficial ? (
+                            {isDownloading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : isSigned ? (
                               <ShieldCheck className="h-4 w-4 text-success" />
                             ) : (
                               <FileDown className="h-4 w-4" />
