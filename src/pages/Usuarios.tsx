@@ -116,6 +116,10 @@ export default function Usuarios() {
       toast.error("Selecione a empresa do gerente");
       return;
     }
+    if (editForm.password && editForm.password.length < 6) {
+      toast.error("Senha deve ter pelo menos 6 caracteres");
+      return;
+    }
     setSavingEdit(true);
     const { data, error } = await supabase.functions.invoke("admin-update-user", {
       body: {
@@ -123,6 +127,7 @@ export default function Usuarios() {
         cidade: editForm.cidade,
         empresa_id: editForm.empresa_id || null,
         role: editForm.role,
+        password: editForm.password || undefined,
       },
     });
     setSavingEdit(false);
