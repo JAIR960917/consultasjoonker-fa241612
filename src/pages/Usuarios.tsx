@@ -72,6 +72,7 @@ export default function Usuarios() {
     }));
     setRows(merged);
     setEmpresas((emps ?? []) as EmpresaOption[]);
+    setDevExists((roles ?? []).some((r) => r.role === "desenvolvedor"));
     setLoading(false);
   };
 
