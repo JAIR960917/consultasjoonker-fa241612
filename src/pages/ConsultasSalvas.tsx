@@ -31,25 +31,58 @@ function formatCPF(cpf: string) {
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
 
+interface ConsultaRow {
+  id: string;
+  user_id: string;
+  cpf: string;
+  nome: string | null;
+  score: number | null;
+  status: string;
+  created_at: string;
+}
+
+interface OperadorOpt { user_id: string; full_name: string; email: string }
+
 export default function ConsultasSalvas() {
   const { role } = useAuth();
+  const isAdmin = role === "admin";
   const [rows, setRows] = useState<CacheRow[]>([]);
+  const [consultas, setConsultas] = useState<ConsultaRow[]>([]);
+  const [operadores, setOperadores] = useState<OperadorOpt[]>([]);
   const [loading, setLoading] = useState(false);
   const [filtro, setFiltro] = useState("");
 
+  // Filtros do relatório por gerente
+  const [gerenteFiltro, setGerenteFiltro] = useState<string>("todos");
+  const [dataInicio, setDataInicio] = useState<string>("");
+  const [dataFim, setDataFim] = useState<string>("");
+  const [filtrosAplicados, setFiltrosAplicados] = useState({
+    gerente: "todos", dataInicio: "", dataFim: "",
+  });
+
   const carregar = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("consultas_cache")
-      .select("id, cpf, nome, data_nascimento, score, consultado_em, expira_em")
-      .order("consultado_em", { ascending: false })
-      .limit(500);
+    const [{ data: cache, error }, { data: cons }, { data: profs }] = await Promise.all([
+      supabase
+        .from("consultas_cache")
+        .select("id, cpf, nome, data_nascimento, score, consultado_em, expira_em")
+        .order("consultado_em", { ascending: false })
+        .limit(500),
+      supabase
+        .from("consultas")
+        .select("id, user_id, cpf, nome, score, status, created_at")
+        .order("created_at", { ascending: false })
+        .limit(2000),
+      supabase.from("profiles").select("user_id, full_name, email"),
+    ]);
     setLoading(false);
     if (error) {
       toast.error("Erro ao carregar consultas salvas");
       return;
     }
-    setRows(data ?? []);
+    setRows(cache ?? []);
+    setConsultas((cons as ConsultaRow[]) ?? []);
+    setOperadores((profs as OperadorOpt[]) ?? []);
   };
 
   useEffect(() => { carregar(); }, []);
@@ -63,6 +96,48 @@ export default function ConsultasSalvas() {
       return cpfMatch || nomeMatch;
     });
   }, [rows, filtro]);
+
+  const opMap = useMemo(() => {
+    const m = new Map<string, OperadorOpt>();
+    operadores.forEach((o) => m.set(o.user_id, o));
+    return m;
+  }, [operadores]);
+
+  const consultasFiltradas = useMemo(() => {
+    return consultas.filter((c) => {
+      if (filtrosAplicados.gerente !== "todos" && c.user_id !== filtrosAplicados.gerente) return false;
+      if (filtrosAplicados.dataInicio && c.created_at < filtrosAplicados.dataInicio) return false;
+      if (filtrosAplicados.dataFim && c.created_at > filtrosAplicados.dataFim + "T23:59:59") return false;
+      return true;
+    });
+  }, [consultas, filtrosAplicados]);
+
+  const porGerente = useMemo(() => {
+    const map = new Map<string, { user_id: string; nome: string; email: string; total: number; sucesso: number; erro: number }>();
+    consultasFiltradas.forEach((c) => {
+      const op = opMap.get(c.user_id);
+      const key = c.user_id;
+      const cur = map.get(key) ?? {
+        user_id: c.user_id,
+        nome: op?.full_name || "—",
+        email: op?.email || "",
+        total: 0, sucesso: 0, erro: 0,
+      };
+      cur.total += 1;
+      if (c.status === "sucesso") cur.sucesso += 1;
+      else cur.erro += 1;
+      map.set(key, cur);
+    });
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [consultasFiltradas, opMap]);
+
+  const aplicarFiltros = () => {
+    setFiltrosAplicados({ gerente: gerenteFiltro, dataInicio, dataFim });
+  };
+  const limparFiltros = () => {
+    setGerenteFiltro("todos"); setDataInicio(""); setDataFim("");
+    setFiltrosAplicados({ gerente: "todos", dataInicio: "", dataFim: "" });
+  };
 
   const remover = async (id: string) => {
     if (!confirm("Remover esta consulta do cache? Na próxima consulta o sistema buscará novamente na Serasa.")) return;
