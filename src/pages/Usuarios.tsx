@@ -308,7 +308,11 @@ export default function Usuarios() {
               <div className="space-y-1.5">
                 <Label>Cidade</Label>
                 <Input value={editForm.cidade} onChange={(e) => setEditForm({ ...editForm, cidade: e.target.value })} />
+              <div className="space-y-1.5">
+                <Label>Nova senha <span className="text-xs text-muted-foreground">(deixe em branco para manter)</span></Label>
+                <Input type="password" minLength={6} placeholder="Mín. 6 caracteres" value={editForm.password} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />
               </div>
+            </div>
             </div>
           )}
           <DialogFooter>
