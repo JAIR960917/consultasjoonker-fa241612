@@ -720,7 +720,7 @@ export default function Consulta() {
                     <div className="mt-6">
                       <Label>Parcelas</Label>
                       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-                        {opcoesParcelas.map((n) => {
+                        {opcoesParcelas.filter((n) => [3, 6, 9, 12, 15].includes(n)).map((n) => {
                           const taxa = taxaScore;
                           const pmt = pricePmt(financiado, taxa, n);
                           const ativo = parcelas === n;
@@ -737,7 +737,7 @@ export default function Consulta() {
                             >
                               <p className="text-xs opacity-80">{n}x</p>
                               <p className="font-bold">{brl(pmt)}</p>
-                              <p className="text-[10px] opacity-70">{taxa}% a.m.</p>
+                              
                             </button>
                           );
                         })}
