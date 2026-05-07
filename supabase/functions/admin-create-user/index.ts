@@ -42,9 +42,13 @@ Deno.serve(async (req) => {
     if (role === "gerente" && !empresa_id) {
       return new Response(JSON.stringify({ error: "Gerente precisa estar vinculado a uma empresa" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    // Apenas desenvolvedor pode criar outro desenvolvedor
+    // Admin só pode criar desenvolvedor se ainda não existir nenhum cadastrado
     if (role === "desenvolvedor" && !isDev) {
-      return new Response(JSON.stringify({ error: "Apenas um desenvolvedor pode criar outro desenvolvedor" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const { count } = await userClient
+        .from("user_roles").select("*", { count: "exact", head: true }).eq("role", "desenvolvedor");
+      if ((count ?? 0) > 0) {
+        return new Response(JSON.stringify({ error: "Já existe um desenvolvedor cadastrado. Apenas ele pode criar outro." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     const adminClient = createClient(
