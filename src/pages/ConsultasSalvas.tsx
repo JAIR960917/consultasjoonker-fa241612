@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Search, Database, Clock, Trash2 } from "lucide-react";
+import { Search, Database, Clock, Trash2, Filter, Users } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -30,25 +34,58 @@ function formatCPF(cpf: string) {
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
 
+interface ConsultaRow {
+  id: string;
+  user_id: string;
+  cpf: string;
+  nome: string | null;
+  score: number | null;
+  status: string;
+  created_at: string;
+}
+
+interface OperadorOpt { user_id: string; full_name: string; email: string }
+
 export default function ConsultasSalvas() {
   const { role } = useAuth();
+  const isAdmin = role === "admin";
   const [rows, setRows] = useState<CacheRow[]>([]);
+  const [consultas, setConsultas] = useState<ConsultaRow[]>([]);
+  const [operadores, setOperadores] = useState<OperadorOpt[]>([]);
   const [loading, setLoading] = useState(false);
   const [filtro, setFiltro] = useState("");
 
+  // Filtros do relatório por gerente
+  const [gerenteFiltro, setGerenteFiltro] = useState<string>("todos");
+  const [dataInicio, setDataInicio] = useState<string>("");
+  const [dataFim, setDataFim] = useState<string>("");
+  const [filtrosAplicados, setFiltrosAplicados] = useState({
+    gerente: "todos", dataInicio: "", dataFim: "",
+  });
+
   const carregar = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("consultas_cache")
-      .select("id, cpf, nome, data_nascimento, score, consultado_em, expira_em")
-      .order("consultado_em", { ascending: false })
-      .limit(500);
+    const [{ data: cache, error }, { data: cons }, { data: profs }] = await Promise.all([
+      supabase
+        .from("consultas_cache")
+        .select("id, cpf, nome, data_nascimento, score, consultado_em, expira_em")
+        .order("consultado_em", { ascending: false })
+        .limit(500),
+      supabase
+        .from("consultas")
+        .select("id, user_id, cpf, nome, score, status, created_at")
+        .order("created_at", { ascending: false })
+        .limit(2000),
+      supabase.from("profiles").select("user_id, full_name, email"),
+    ]);
     setLoading(false);
     if (error) {
       toast.error("Erro ao carregar consultas salvas");
       return;
     }
-    setRows(data ?? []);
+    setRows(cache ?? []);
+    setConsultas((cons as ConsultaRow[]) ?? []);
+    setOperadores((profs as OperadorOpt[]) ?? []);
   };
 
   useEffect(() => { carregar(); }, []);
@@ -62,6 +99,48 @@ export default function ConsultasSalvas() {
       return cpfMatch || nomeMatch;
     });
   }, [rows, filtro]);
+
+  const opMap = useMemo(() => {
+    const m = new Map<string, OperadorOpt>();
+    operadores.forEach((o) => m.set(o.user_id, o));
+    return m;
+  }, [operadores]);
+
+  const consultasFiltradas = useMemo(() => {
+    return consultas.filter((c) => {
+      if (filtrosAplicados.gerente !== "todos" && c.user_id !== filtrosAplicados.gerente) return false;
+      if (filtrosAplicados.dataInicio && c.created_at < filtrosAplicados.dataInicio) return false;
+      if (filtrosAplicados.dataFim && c.created_at > filtrosAplicados.dataFim + "T23:59:59") return false;
+      return true;
+    });
+  }, [consultas, filtrosAplicados]);
+
+  const porGerente = useMemo(() => {
+    const map = new Map<string, { user_id: string; nome: string; email: string; total: number; sucesso: number; erro: number }>();
+    consultasFiltradas.forEach((c) => {
+      const op = opMap.get(c.user_id);
+      const key = c.user_id;
+      const cur = map.get(key) ?? {
+        user_id: c.user_id,
+        nome: op?.full_name || "—",
+        email: op?.email || "",
+        total: 0, sucesso: 0, erro: 0,
+      };
+      cur.total += 1;
+      if (c.status === "sucesso") cur.sucesso += 1;
+      else cur.erro += 1;
+      map.set(key, cur);
+    });
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [consultasFiltradas, opMap]);
+
+  const aplicarFiltros = () => {
+    setFiltrosAplicados({ gerente: gerenteFiltro, dataInicio, dataFim });
+  };
+  const limparFiltros = () => {
+    setGerenteFiltro("todos"); setDataInicio(""); setDataFim("");
+    setFiltrosAplicados({ gerente: "todos", dataInicio: "", dataFim: "" });
+  };
 
   const remover = async (id: string) => {
     if (!confirm("Remover esta consulta do cache? Na próxima consulta o sistema buscará novamente na Serasa.")) return;
@@ -110,6 +189,83 @@ export default function ConsultasSalvas() {
             <CardContent><div className="text-2xl font-bold text-muted-foreground">{expirados}</div></CardContent>
           </Card>
         </div>
+
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" /> Consultas por gerente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Filtros</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                <div>
+                  <Label className="text-xs">Gerente</Label>
+                  <Select value={gerenteFiltro} onValueChange={setGerenteFiltro}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {operadores.map((o) => (
+                        <SelectItem key={o.user_id} value={o.user_id}>
+                          {o.full_name || o.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Data inicial</Label>
+                  <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Data final</Label>
+                  <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={aplicarFiltros} className="flex-1">Aplicar</Button>
+                  <Button variant="outline" onClick={limparFiltros}>Limpar</Button>
+                </div>
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                Total de consultas no período: <strong className="text-foreground">{consultasFiltradas.length}</strong>
+              </div>
+
+              {porGerente.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma consulta no período selecionado.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Gerente</TableHead>
+                        <TableHead>E-mail</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-right">Sucesso</TableHead>
+                        <TableHead className="text-right">Erros</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {porGerente.map((g) => (
+                        <TableRow key={g.user_id}>
+                          <TableCell className="font-medium">{g.nome}</TableCell>
+                          <TableCell className="text-muted-foreground">{g.email}</TableCell>
+                          <TableCell className="text-right font-bold">{g.total}</TableCell>
+                          <TableCell className="text-right text-success">{g.sucesso}</TableCell>
+                          <TableCell className="text-right text-destructive">{g.erro}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
