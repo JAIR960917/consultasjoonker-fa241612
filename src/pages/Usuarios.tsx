@@ -37,6 +37,7 @@ interface EmpresaOption {
 
 export default function Usuarios() {
   const { user, role: currentRole } = useAuth();
+  const [devExists, setDevExists] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [empresas, setEmpresas] = useState<EmpresaOption[]>([]);
   const [loading, setLoading] = useState(true);
