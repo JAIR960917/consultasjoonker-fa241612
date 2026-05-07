@@ -46,7 +46,7 @@ export default function Usuarios() {
   });
 
   const [editing, setEditing] = useState<Row | null>(null);
-  const [editForm, setEditForm] = useState({ cidade: "", empresa_id: "", role: "gerente" });
+  const [editForm, setEditForm] = useState({ cidade: "", empresa_id: "", role: "gerente", password: "" });
   const [savingEdit, setSavingEdit] = useState(false);
 
   const [deleting, setDeleting] = useState<Row | null>(null);
