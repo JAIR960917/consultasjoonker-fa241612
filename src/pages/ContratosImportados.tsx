@@ -40,6 +40,11 @@ export default function ContratosImportados() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    if (driveFolder) localStorage.setItem("gdrive_folder_url", driveFolder);
+    else localStorage.removeItem("gdrive_folder_url");
+  }, [driveFolder]);
+
   const sync = async () => {
     setSyncing(true);
     setLastError(null);
