@@ -184,7 +184,7 @@ export function ParcelasContrato({ contratoId, contratoAssinado }: {
         <div className="flex items-center gap-2 flex-wrap">
           {parcelas.length === 0 && (
             <span className="text-xs text-muted-foreground">
-              Os boletos serão gerados sempre no mesmo dia que o cliente escolheu anteriormente
+              {infoText}
             </span>
           )}
           <Button variant="outline" size="sm" onClick={carregar} disabled={loading}>
