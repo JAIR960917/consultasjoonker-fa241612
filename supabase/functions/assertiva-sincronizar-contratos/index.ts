@@ -4,9 +4,22 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 const BASE = "https://api.assertivasolucoes.com.br";
 
 async function getToken() {
-  const id = Deno.env.get("ASSERTIVA_CLIENT_ID");
-  const secret = Deno.env.get("ASSERTIVA_CLIENT_SECRET");
+  // Mesma lógica da integração que funcionou: prioriza token pronto por empresa,
+  // depois credenciais por empresa (slug), e só por último as genéricas.
+  const slug = "OTICA_JOONKER_SOLEDADE";
+  const tokenPronto =
+    Deno.env.get(`ASSERTIVA_AUTH_TOKEN_${slug.toLowerCase()}`) ??
+    Deno.env.get(`ASSERTIVA_AUTH_TOKEN_soledade`);
+  if (tokenPronto) return tokenPronto;
+
+  const id =
+    Deno.env.get(`ASSERTIVA_CLIENT_ID_${slug}`) ??
+    Deno.env.get("ASSERTIVA_CLIENT_ID");
+  const secret =
+    Deno.env.get(`ASSERTIVA_CLIENT_SECRET_${slug}`) ??
+    Deno.env.get("ASSERTIVA_CLIENT_SECRET");
   if (!id || !secret) throw new Error("Credenciais Assertiva não configuradas");
+
   const r = await fetch(`${BASE}/oauth2/v3/token`, {
     method: "POST",
     headers: {
