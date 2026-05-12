@@ -159,6 +159,7 @@ export default function Configuracoes() {
                       onChange={(e) => setField("max_installments", parseInt(e.target.value || "0"))}
                     />
                   </div>
+                </div>
               </CardContent>
             </Card>
 
