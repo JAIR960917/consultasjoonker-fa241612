@@ -43,18 +43,36 @@ Deno.serve(async (req) => {
     }
 
     let triggers: string[] = ["paid", "canceled", "overdue"];
+    let empresaId: string | null = null;
     try {
       const body = await req.json();
       if (Array.isArray(body?.triggers) && body.triggers.length) triggers = body.triggers;
+      if (typeof body?.empresa_id === "string" && body.empresa_id) empresaId = body.empresa_id;
     } catch {
       // sem body
     }
 
-    const clientId = Deno.env.get("CORA_CLIENT_ID");
-    const certPem = Deno.env.get("CORA_CERTIFICATE");
-    const keyPem = Deno.env.get("CORA_PRIVATE_KEY");
+    // Resolve credenciais: 1) banco por empresa, 2) secrets por slug, 3) fallback global
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    let dbCreds: { cora_client_id: string | null; cora_certificate: string | null; cora_private_key: string | null } | null = null;
+    let empresaSlug = "";
+    if (empresaId) {
+      const [{ data: creds }, { data: emp }] = await Promise.all([
+        admin.from("empresa_credenciais").select("cora_client_id, cora_certificate, cora_private_key").eq("empresa_id", empresaId).maybeSingle(),
+        admin.from("empresas").select("slug").eq("id", empresaId).maybeSingle(),
+      ]);
+      dbCreds = creds ?? null;
+      empresaSlug = emp?.slug ?? "";
+    }
+    const suffix = empresaSlug ? `_${empresaSlug}` : "";
+    const clientId = dbCreds?.cora_client_id || Deno.env.get(`CORA_CLIENT_ID${suffix}`) || Deno.env.get("CORA_CLIENT_ID");
+    const certPem  = dbCreds?.cora_certificate || Deno.env.get(`CORA_CERTIFICATE${suffix}`) || Deno.env.get("CORA_CERTIFICATE");
+    const keyPem   = dbCreds?.cora_private_key || Deno.env.get(`CORA_PRIVATE_KEY${suffix}`) || Deno.env.get("CORA_PRIVATE_KEY");
     if (!clientId || !certPem || !keyPem) {
-      return json({ error: "Secrets da Cora não configurados" }, 400);
+      return json({ error: `Credenciais Cora ausentes${empresaSlug ? ` para empresa ${empresaSlug}` : ""}` }, 400);
     }
 
     // Mesma lógica robusta da função cora-emitir-boleto-teste
