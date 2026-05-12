@@ -31,7 +31,7 @@ export default function ContratosImportados() {
       .select("id, envelope_id, nome, cpf, data_assinatura, pdf_path")
       .order("data_assinatura", { ascending: false })
       .limit(1000);
-    setRows((data ?? []) as Row[]);
+    setRows(((data ?? []) as unknown) as Row[]);
     setLoading(false);
   };
 
