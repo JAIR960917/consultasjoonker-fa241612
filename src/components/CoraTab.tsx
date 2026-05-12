@@ -316,13 +316,28 @@ export function CoraTab() {
                 </p>
               </div>
 
+              <div className="space-y-2">
+                <Label>Empresa *</Label>
+                <Select value={empresaWebhook} onValueChange={setEmpresaWebhook}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a empresa…" /></SelectTrigger>
+                  <SelectContent>
+                    {empresas.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>{e.nome} — {e.slug}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  O webhook é registrado na conta Cora desta empresa. Repita para cada empresa cadastrada.
+                </p>
+              </div>
+
               <div className="flex flex-wrap gap-2">
-                <Button onClick={registrarWebhook} disabled={loadingWebhook} size="lg">
+                <Button onClick={registrarWebhook} disabled={loadingWebhook || !empresaWebhook} size="lg">
                   {loadingWebhook
                     ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processando...</>
                     : <><Webhook className="mr-2 h-4 w-4" />Registrar webhook na Cora</>}
                 </Button>
-                <Button onClick={listarWebhooks} disabled={loadingWebhook} variant="outline" size="lg">
+                <Button onClick={listarWebhooks} disabled={loadingWebhook || !empresaWebhook} variant="outline" size="lg">
                   <RefreshCw className="mr-2 h-4 w-4" /> Listar webhooks ativos
                 </Button>
               </div>
