@@ -86,6 +86,27 @@ export default function ContratosImportados() {
         </Button>
       </header>
 
+      {lastError && (
+        <Card className="mb-4 border-destructive/50">
+          <CardHeader>
+            <CardTitle className="text-base text-destructive">Erro retornado pela Assertiva</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-xs whitespace-pre-wrap break-all bg-muted p-3 rounded select-all">
+{lastError}
+            </pre>
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-2"
+              onClick={() => { navigator.clipboard.writeText(lastError); toast.success("Copiado"); }}
+            >
+              Copiar erro
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="shadow-elegant">
         <CardHeader>
           <CardTitle className="text-base">
