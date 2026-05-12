@@ -36,6 +36,7 @@ export interface Branding {
   sidebar_primary: string;
   sidebar_primary_foreground: string;
   primary_glow: string;
+  boletos_info_text: string;
 }
 
 // Mapeamento campo da tabela -> nome da CSS var
