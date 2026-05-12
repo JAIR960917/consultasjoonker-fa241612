@@ -107,7 +107,8 @@ export default function Configuracoes() {
       min_score: s.min_score,
       max_installments: s.max_installments,
       score_tiers: tiersSorted as unknown as never,
-    }).eq("id", s.id);
+      boletos_info_text: s.boletos_info_text,
+    } as any).eq("id", s.id);
     setSaving(false);
     if (error) toast.error("Erro ao salvar", { description: error.message });
     else {
