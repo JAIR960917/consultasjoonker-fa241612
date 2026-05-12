@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Loader2, Receipt, Copy, ExternalLink, RefreshCw, Zap, FileDown } from "lucide-react";
 import { brl } from "@/lib/finance";
 import { downloadCarnePdf } from "@/lib/carne";
+import { useBranding } from "@/contexts/BrandingContext";
 
 interface Parcela {
   id: string;
