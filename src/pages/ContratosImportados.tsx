@@ -23,6 +23,7 @@ export default function ContratosImportados() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [search, setSearch] = useState("");
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -39,10 +40,13 @@ export default function ContratosImportados() {
 
   const sync = async () => {
     setSyncing(true);
+    setLastError(null);
     const { data, error } = await supabase.functions.invoke("assertiva-sincronizar-contratos", { body: {} });
     setSyncing(false);
     if (error || !data?.ok) {
-      toast.error("Erro ao sincronizar", { description: data?.error ?? error?.message });
+      const msg = data?.error ?? error?.message ?? "Erro desconhecido";
+      setLastError(typeof msg === "string" ? msg : JSON.stringify(msg));
+      toast.error("Erro ao sincronizar");
       return;
     }
     toast.success(`Importados: ${data.importados} · Já existentes: ${data.ignorados}`);
@@ -81,6 +85,27 @@ export default function ContratosImportados() {
           Sincronizar
         </Button>
       </header>
+
+      {lastError && (
+        <Card className="mb-4 border-destructive/50">
+          <CardHeader>
+            <CardTitle className="text-base text-destructive">Erro retornado pela Assertiva</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-xs whitespace-pre-wrap break-all bg-muted p-3 rounded select-all">
+{lastError}
+            </pre>
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-2"
+              onClick={() => { navigator.clipboard.writeText(lastError); toast.success("Copiado"); }}
+            >
+              Copiar erro
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="shadow-elegant">
         <CardHeader>
