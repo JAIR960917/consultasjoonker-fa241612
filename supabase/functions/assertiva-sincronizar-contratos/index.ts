@@ -2,16 +2,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const BASE = "https://api.assertivasolucoes.com.br";
+const ASSERTIVA_SLUG = "OTICA_JOONKER_SOLEDADE";
 
-async function getToken() {
-  // Mesma lógica da integração que funcionou: prioriza token pronto por empresa,
-  // depois credenciais por empresa (slug), e só por último as genéricas.
-  const slug = "OTICA_JOONKER_SOLEDADE";
-  const tokenPronto =
-    Deno.env.get(`ASSERTIVA_AUTH_TOKEN_${slug.toLowerCase()}`) ??
-    Deno.env.get(`ASSERTIVA_AUTH_TOKEN_soledade`);
-  if (tokenPronto) return tokenPronto;
+type TokenInfo = { token: string; source: "saved" | "oauth" };
 
+function cleanToken(token: string) {
+  return token.replace(/^Bearer\s+/i, "").trim();
+}
+
+async function getOAuthToken() {
+  const slug = ASSERTIVA_SLUG;
   const id =
     Deno.env.get(`ASSERTIVA_CLIENT_ID_${slug}`) ??
     Deno.env.get("ASSERTIVA_CLIENT_ID");
@@ -30,7 +30,18 @@ async function getToken() {
   });
   const txt = await r.text();
   if (!r.ok) throw new Error(`OAuth ${r.status}: ${txt}`);
-  return JSON.parse(txt).access_token as string;
+  return cleanToken(JSON.parse(txt).access_token as string);
+}
+
+async function getToken(): Promise<TokenInfo> {
+  const slug = ASSERTIVA_SLUG;
+  const tokenPronto =
+    Deno.env.get(`ASSERTIVA_AUTH_TOKEN_${slug}`) ??
+    Deno.env.get(`ASSERTIVA_AUTH_TOKEN_${slug.toLowerCase()}`) ??
+    Deno.env.get(`ASSERTIVA_AUTH_TOKEN_soledade`);
+  if (tokenPronto) return { token: cleanToken(tokenPronto), source: "saved" };
+
+  return { token: await getOAuthToken(), source: "oauth" };
 }
 
 async function filtrar(token: string, index: number, size: number) {
