@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
         return true;
       });
 
-      const CONCURRENCY = 5;
+      const CONCURRENCY = 3;
       for (let i = 0; i < pendentes.length; i += CONCURRENCY) {
         if (processed >= maxFiles || Date.now() - startedAt > TIME_BUDGET_MS) break outer;
         const chunk = pendentes.slice(i, i + CONCURRENCY);
