@@ -111,7 +111,7 @@ export function RelatoriosDiariosCard() {
             <div className="flex items-center gap-3">
               <ClipboardList className="h-7 w-7 text-primary" />
               <div>
-                <h3 className="text-xl font-semibold">Relatórios diários — baixa no SSÓtica</h3>
+                <h3 className="text-xl font-semibold">Relatório Diário - Boletos Pagos</h3>
                 <p className="text-sm text-muted-foreground">Boletos pagos no dia anterior, prontos para baixar no sistema.</p>
               </div>
             </div>
