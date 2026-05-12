@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     let importados = 0, ignorados = 0;
     const erros: string[] = [];
     const startedAt = Date.now();
-    const TIME_BUDGET_MS = 110_000;
+    const TIME_BUDGET_MS = 60_000;
 
     let nextPageToken: string | undefined = pageToken;
     let processed = 0;
