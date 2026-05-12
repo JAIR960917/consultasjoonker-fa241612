@@ -60,7 +60,6 @@ export default function Login() {
           )}
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{appName}</h1>
-            <p className="text-xs uppercase tracking-widest opacity-70">{tagline}</p>
           </div>
         </div>
 
