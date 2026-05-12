@@ -68,12 +68,12 @@ export default function Dashboard() {
           <Card className="shadow-card">
             <CardContent className="p-6">
               <Search className="h-7 w-7 text-primary" />
-              <h3 className="mt-4 text-xl font-semibold">Consultar CPF</h3>
+              <h3 className="mt-4 text-xl font-semibold">Vender no Boleto</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 Busque dados, score e simule a venda na hora.
               </p>
               <Button asChild className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link to="/consulta">Nova consulta</Link>
+                <Link to="/consulta">Consultar CPF</Link>
               </Button>
             </CardContent>
           </Card>
@@ -101,12 +101,12 @@ export default function Dashboard() {
           <Card className="shadow-card">
             <CardContent className="p-6">
               <Search className="h-7 w-7 text-primary" />
-              <h3 className="mt-4 text-xl font-semibold">Consultar CPF</h3>
+              <h3 className="mt-4 text-xl font-semibold">Vender no Boleto</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 Busque dados, score e simule a venda na hora.
               </p>
               <Button asChild className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link to="/consulta">Nova consulta</Link>
+                <Link to="/consulta">Consultar CPF</Link>
               </Button>
             </CardContent>
           </Card>
