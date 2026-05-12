@@ -40,10 +40,13 @@ export default function ContratosImportados() {
 
   const sync = async () => {
     setSyncing(true);
+    setLastError(null);
     const { data, error } = await supabase.functions.invoke("assertiva-sincronizar-contratos", { body: {} });
     setSyncing(false);
     if (error || !data?.ok) {
-      toast.error("Erro ao sincronizar", { description: data?.error ?? error?.message });
+      const msg = data?.error ?? error?.message ?? "Erro desconhecido";
+      setLastError(typeof msg === "string" ? msg : JSON.stringify(msg));
+      toast.error("Erro ao sincronizar");
       return;
     }
     toast.success(`Importados: ${data.importados} · Já existentes: ${data.ignorados}`);
