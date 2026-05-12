@@ -2,35 +2,57 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const BASE = "https://api.assertivasolucoes.com.br";
+const ASSERTIVA_SLUG = "OTICA_JOONKER_SOLEDADE";
 
-async function getToken() {
-  // Mesma lógica da integração que funcionou: prioriza token pronto por empresa,
-  // depois credenciais por empresa (slug), e só por último as genéricas.
-  const slug = "OTICA_JOONKER_SOLEDADE";
+type TokenInfo = { token: string; source: "saved" | "oauth" };
+
+function cleanToken(token: string) {
+  return token.replace(/^Bearer\s+/i, "").trim();
+}
+
+async function getOAuthToken() {
+  const slug = ASSERTIVA_SLUG;
+  const credentials = [
+    {
+      label: "empresa",
+      id: Deno.env.get(`ASSERTIVA_CLIENT_ID_${slug}`),
+      secret: Deno.env.get(`ASSERTIVA_CLIENT_SECRET_${slug}`),
+    },
+    {
+      label: "geral",
+      id: Deno.env.get("ASSERTIVA_CLIENT_ID"),
+      secret: Deno.env.get("ASSERTIVA_CLIENT_SECRET"),
+    },
+  ].filter((item) => item.id && item.secret);
+  if (!credentials.length) throw new Error("Credenciais Assertiva não configuradas");
+
+  const errors: string[] = [];
+  for (const credential of credentials) {
+    const r = await fetch(`${BASE}/oauth2/v3/token`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${btoa(`${credential.id}:${credential.secret}`)}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+    });
+    const txt = await r.text();
+    if (r.ok) return cleanToken(JSON.parse(txt).access_token as string);
+    errors.push(`${credential.label}: OAuth ${r.status}`);
+  }
+
+  throw new Error(`Não foi possível autenticar na Assertiva (${errors.join("; ")})`);
+}
+
+async function getToken(): Promise<TokenInfo> {
+  const slug = ASSERTIVA_SLUG;
   const tokenPronto =
+    Deno.env.get(`ASSERTIVA_AUTH_TOKEN_${slug}`) ??
     Deno.env.get(`ASSERTIVA_AUTH_TOKEN_${slug.toLowerCase()}`) ??
     Deno.env.get(`ASSERTIVA_AUTH_TOKEN_soledade`);
-  if (tokenPronto) return tokenPronto;
+  if (tokenPronto) return { token: cleanToken(tokenPronto), source: "saved" };
 
-  const id =
-    Deno.env.get(`ASSERTIVA_CLIENT_ID_${slug}`) ??
-    Deno.env.get("ASSERTIVA_CLIENT_ID");
-  const secret =
-    Deno.env.get(`ASSERTIVA_CLIENT_SECRET_${slug}`) ??
-    Deno.env.get("ASSERTIVA_CLIENT_SECRET");
-  if (!id || !secret) throw new Error("Credenciais Assertiva não configuradas");
-
-  const r = await fetch(`${BASE}/oauth2/v3/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${btoa(`${id}:${secret}`)}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
-  });
-  const txt = await r.text();
-  if (!r.ok) throw new Error(`OAuth ${r.status}: ${txt}`);
-  return JSON.parse(txt).access_token as string;
+  return { token: await getOAuthToken(), source: "oauth" };
 }
 
 async function filtrar(token: string, index: number, size: number) {
@@ -67,7 +89,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-    const token = await getToken();
+    let { token, source: tokenSource } = await getToken();
 
     let index = 0;
     const size = 50;
@@ -76,7 +98,16 @@ Deno.serve(async (req) => {
     const maxPaginas = 100;
 
     for (let p = 0; p < maxPaginas; p++) {
-      const resp = await filtrar(token, index, size);
+      let resp;
+      try {
+        resp = await filtrar(token, index, size);
+      } catch (e) {
+        const message = (e as Error).message;
+        if (tokenSource !== "saved" || !message.includes("HTTP 401")) throw e;
+        token = await getOAuthToken();
+        tokenSource = "oauth";
+        resp = await filtrar(token, index, size);
+      }
       const envelopes: any[] = resp?.data?.envelopes ?? [];
       if (!envelopes.length) break;
 
