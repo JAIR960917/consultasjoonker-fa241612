@@ -21,6 +21,7 @@ import ConsultasSalvas from "./pages/ConsultasSalvas";
 import RelatoriosDiarios from "./pages/RelatoriosDiarios";
 import Credenciais from "./pages/Credenciais";
 import ContratosImportados from "./pages/ContratosImportados";
+import PagamentoEntrega from "./pages/PagamentoEntrega";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
