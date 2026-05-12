@@ -267,6 +267,18 @@ function addDays(d: Date, days: number) {
   return r;
 }
 
+// Adiciona N meses preservando o dia do mês original.
+// Se o mês destino não tiver esse dia (ex: 31 em fev), usa o último dia do mês.
+function addMonthsKeepDay(d: Date, months: number) {
+  const day = d.getDate();
+  const r = new Date(d);
+  r.setDate(1);
+  r.setMonth(r.getMonth() + months);
+  const lastDay = new Date(r.getFullYear(), r.getMonth() + 1, 0).getDate();
+  r.setDate(Math.min(day, lastDay));
+  return r;
+}
+
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
