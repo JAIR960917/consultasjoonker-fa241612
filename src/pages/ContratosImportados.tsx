@@ -22,6 +22,8 @@ export default function ContratosImportados() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [importingDrive, setImportingDrive] = useState(false);
+  const [driveFolder, setDriveFolder] = useState("");
   const [search, setSearch] = useState("");
   const [lastError, setLastError] = useState<string | null>(null);
 
