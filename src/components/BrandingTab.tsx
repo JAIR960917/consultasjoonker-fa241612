@@ -125,6 +125,18 @@ export function BrandingTab() {
           <p className="text-xs text-muted-foreground">
             Recomendado: PNG ou SVG quadrado, até 2MB. A mesma imagem aparece na sidebar e como ícone do navegador.
           </p>
+
+          <div className="space-y-2 pt-2">
+            <Label>Texto informativo dos boletos</Label>
+            <Textarea
+              rows={2}
+              value={draft.boletos_info_text ?? ""}
+              onChange={(e) => setField("boletos_info_text", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Mensagem exibida na tela do contrato, acima do botão de emitir boletos.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
