@@ -12,25 +12,36 @@ function cleanToken(token: string) {
 
 async function getOAuthToken() {
   const slug = ASSERTIVA_SLUG;
-  const id =
-    Deno.env.get(`ASSERTIVA_CLIENT_ID_${slug}`) ??
-    Deno.env.get("ASSERTIVA_CLIENT_ID");
-  const secret =
-    Deno.env.get(`ASSERTIVA_CLIENT_SECRET_${slug}`) ??
-    Deno.env.get("ASSERTIVA_CLIENT_SECRET");
-  if (!id || !secret) throw new Error("Credenciais Assertiva não configuradas");
-
-  const r = await fetch(`${BASE}/oauth2/v3/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${btoa(`${id}:${secret}`)}`,
-      "Content-Type": "application/x-www-form-urlencoded",
+  const credentials = [
+    {
+      label: "empresa",
+      id: Deno.env.get(`ASSERTIVA_CLIENT_ID_${slug}`),
+      secret: Deno.env.get(`ASSERTIVA_CLIENT_SECRET_${slug}`),
     },
-    body: "grant_type=client_credentials",
-  });
-  const txt = await r.text();
-  if (!r.ok) throw new Error(`OAuth ${r.status}: ${txt}`);
-  return cleanToken(JSON.parse(txt).access_token as string);
+    {
+      label: "geral",
+      id: Deno.env.get("ASSERTIVA_CLIENT_ID"),
+      secret: Deno.env.get("ASSERTIVA_CLIENT_SECRET"),
+    },
+  ].filter((item) => item.id && item.secret);
+  if (!credentials.length) throw new Error("Credenciais Assertiva não configuradas");
+
+  const errors: string[] = [];
+  for (const credential of credentials) {
+    const r = await fetch(`${BASE}/oauth2/v3/token`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${btoa(`${credential.id}:${credential.secret}`)}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+    });
+    const txt = await r.text();
+    if (r.ok) return cleanToken(JSON.parse(txt).access_token as string);
+    errors.push(`${credential.label}: OAuth ${r.status}`);
+  }
+
+  throw new Error(`Não foi possível autenticar na Assertiva (${errors.join("; ")})`);
 }
 
 async function getToken(): Promise<TokenInfo> {
