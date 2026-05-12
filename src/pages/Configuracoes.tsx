@@ -19,6 +19,7 @@ interface Settings {
   min_score: number;
   max_installments: number;
   score_tiers: ScoreTier[];
+  boletos_info_text: string;
 }
 
 const defaultTiers: ScoreTier[] = [
