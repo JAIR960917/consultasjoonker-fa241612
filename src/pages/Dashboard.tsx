@@ -47,50 +47,83 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold tracking-tight">Painel</h1>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map((c) => (
-          <Card key={c.label} className="shadow-card">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">{c.label}</p>
-                <c.icon className={`h-5 w-5 ${c.color}`} />
-              </div>
-              <p className="mt-2 text-2xl font-bold tracking-tight">{c.value}</p>
+      {!isGerente && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {cards.map((c) => (
+            <Card key={c.label} className="shadow-card">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">{c.label}</p>
+                  <c.icon className={`h-5 w-5 ${c.color}`} />
+                </div>
+                <p className="mt-2 text-2xl font-bold tracking-tight">{c.value}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {isGerente && (
+        <div className="mb-8 grid gap-4 md:grid-cols-2">
+          <Card className="shadow-card">
+            <CardContent className="p-6">
+              <Search className="h-7 w-7 text-primary" />
+              <h3 className="mt-4 text-xl font-semibold">Consultar CPF</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Busque dados, score e simule a venda na hora.
+              </p>
+              <Button asChild className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link to="/consulta">Nova consulta</Link>
+              </Button>
             </CardContent>
           </Card>
-        ))}
-      </div>
+          <Card className="shadow-card">
+            <CardContent className="p-6">
+              <History className="h-7 w-7 text-primary" />
+              <h3 className="mt-4 text-xl font-semibold">Histórico</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Veja as últimas consultas e vendas registradas.
+              </p>
+              <Button asChild variant="outline" className="mt-4">
+                <Link to="/historico">Abrir histórico</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-      <div className="mt-8">
+      <div className={isGerente ? "" : "mt-8"}>
         <RelatoriosDiariosCard />
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <Card className="shadow-card">
-          <CardContent className="p-6">
-            <Search className="h-7 w-7 text-primary" />
-            <h3 className="mt-4 text-xl font-semibold">Consultar CPF</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Busque dados, score e simule a venda na hora.
-            </p>
-            <Button asChild className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link to="/consulta">Nova consulta</Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardContent className="p-6">
-            <History className="h-7 w-7 text-primary" />
-            <h3 className="mt-4 text-xl font-semibold">Histórico</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Veja as últimas consultas e vendas registradas.
-            </p>
-            <Button asChild variant="outline" className="mt-4">
-              <Link to="/historico">Abrir histórico</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      {!isGerente && (
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <Card className="shadow-card">
+            <CardContent className="p-6">
+              <Search className="h-7 w-7 text-primary" />
+              <h3 className="mt-4 text-xl font-semibold">Consultar CPF</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Busque dados, score e simule a venda na hora.
+              </p>
+              <Button asChild className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link to="/consulta">Nova consulta</Link>
+              </Button>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card">
+            <CardContent className="p-6">
+              <History className="h-7 w-7 text-primary" />
+              <h3 className="mt-4 text-xl font-semibold">Histórico</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Veja as últimas consultas e vendas registradas.
+              </p>
+              <Button asChild variant="outline" className="mt-4">
+                <Link to="/historico">Abrir histórico</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </AppLayout>
   );
 }
