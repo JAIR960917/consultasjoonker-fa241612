@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, Download, FileSignature } from "lucide-react";
+import { Loader2, RefreshCw, Download, FileSignature, FolderInput } from "lucide-react";
 import { maskCpf } from "@/lib/finance";
 
 interface Row {
