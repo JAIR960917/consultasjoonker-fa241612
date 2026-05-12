@@ -120,14 +120,21 @@ Deno.serve(async (req) => {
           raw: { source: "gdrive", file: f },
         });
         importados++;
+        processed++;
       }
 
-      pageToken = data.nextPageToken;
-      if (!pageToken) break;
+      if (!nextPageToken) { done = true; break; }
     }
 
     return new Response(
-      JSON.stringify({ ok: true, importados, ignorados, erros: erros.slice(0, 20) }),
+      JSON.stringify({
+        ok: true,
+        importados,
+        ignorados,
+        erros: erros.slice(0, 20),
+        nextPageToken: done ? null : nextPageToken,
+        done,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
