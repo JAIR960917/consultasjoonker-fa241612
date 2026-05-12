@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
       dbCreds = creds ?? null;
       empresaSlug = emp?.slug ?? "";
     }
-    const suffix = empresaSlug ? `_${empresaSlug.toUpperCase()}` : "";
+    const suffix = empresaSlug ? `_${empresaSlug}` : "";
     const clientId = dbCreds?.cora_client_id || Deno.env.get(`CORA_CLIENT_ID${suffix}`) || Deno.env.get("CORA_CLIENT_ID");
     const certPem  = dbCreds?.cora_certificate || Deno.env.get(`CORA_CERTIFICATE${suffix}`) || Deno.env.get("CORA_CERTIFICATE");
     const keyPem   = dbCreds?.cora_private_key || Deno.env.get(`CORA_PRIVATE_KEY${suffix}`) || Deno.env.get("CORA_PRIVATE_KEY");
