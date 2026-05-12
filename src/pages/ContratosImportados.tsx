@@ -80,19 +80,25 @@ export default function ContratosImportados() {
     }
   };
 
-  const baixar = async (path: string, cpf: string | null) => {
+  const baixar = (path: string, cpf: string | null) => {
+    // Abre uma janela imediatamente (dentro do gesto do usuário) para evitar bloqueio de pop-up
+    const win = window.open("", "_blank");
     const filename = cpf ? `${cpf.replace(/\D/g, "")}.pdf` : undefined;
-    const { data, error } = await supabase.functions.invoke("assertiva-baixar-contrato", { body: { path, filename } });
-    if (error || !data?.ok) {
-      toast.error("Erro ao gerar link", { description: data?.error ?? error?.message });
-      return;
-    }
-    const a = document.createElement("a");
-    a.href = data.url;
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    supabase.functions
+      .invoke("assertiva-baixar-contrato", { body: { path, filename } })
+      .then(({ data, error }) => {
+        if (error || !data?.ok) {
+          if (win) win.close();
+          toast.error("Erro ao gerar link", { description: data?.error ?? error?.message });
+          return;
+        }
+        if (win) {
+          win.location.href = data.url;
+        } else {
+          // Fallback: força navegação na mesma aba
+          window.location.href = data.url;
+        }
+      });
   };
 
   const importarDrive = async () => {
