@@ -41,16 +41,36 @@ export default function ContratosImportados() {
   const sync = async () => {
     setSyncing(true);
     setLastError(null);
-    const { data, error } = await supabase.functions.invoke("assertiva-sincronizar-contratos", { body: {} });
-    setSyncing(false);
-    if (error || !data?.ok) {
-      const msg = data?.error ?? error?.message ?? "Erro desconhecido";
-      setLastError(typeof msg === "string" ? msg : JSON.stringify(msg));
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      const url = `https://vtiimbbrxsfqgmscqdnl.supabase.co/functions/v1/assertiva-sincronizar-contratos`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: "{}",
+      });
+      const txt = await res.text();
+      let data: any = null;
+      try { data = JSON.parse(txt); } catch { /* keep raw */ }
+      if (!res.ok || !data?.ok) {
+        const msg = data?.error ?? txt ?? `HTTP ${res.status}`;
+        setLastError(typeof msg === "string" ? msg : JSON.stringify(msg, null, 2));
+        toast.error("Erro ao sincronizar");
+        return;
+      }
+      toast.success(`Importados: ${data.importados} · Já existentes: ${data.ignorados}`);
+      load();
+    } catch (e: any) {
+      setLastError(e?.message ?? String(e));
       toast.error("Erro ao sincronizar");
-      return;
+    } finally {
+      setSyncing(false);
     }
-    toast.success(`Importados: ${data.importados} · Já existentes: ${data.ignorados}`);
-    load();
   };
 
   const baixar = async (path: string) => {
