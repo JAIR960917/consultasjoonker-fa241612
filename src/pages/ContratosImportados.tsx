@@ -91,17 +91,25 @@ export default function ContratosImportados() {
     }
     setImportingDrive(true);
     setLastError(null);
+    let totalImp = 0, totalIgn = 0;
     try {
-      const { data, error } = await supabase.functions.invoke("gdrive-importar-contratos", {
-        body: { folder: driveFolder.trim() },
-      });
-      if (error || !data?.ok) {
-        const msg = data?.error ?? error?.message ?? "Erro desconhecido";
-        setLastError(typeof msg === "string" ? msg : JSON.stringify(msg, null, 2));
-        toast.error("Erro ao importar do Drive");
-        return;
+      for (let i = 0; i < 50; i++) {
+        const { data, error } = await supabase.functions.invoke("gdrive-importar-contratos", {
+          body: { folder: driveFolder.trim() },
+        });
+        if (error || !data?.ok) {
+          const msg = data?.error ?? error?.message ?? "Erro desconhecido";
+          setLastError(typeof msg === "string" ? msg : JSON.stringify(msg, null, 2));
+          toast.error("Erro ao importar do Drive");
+          return;
+        }
+        totalImp += data.importados ?? 0;
+        totalIgn += data.ignorados ?? 0;
+        toast.message(`Lote ${i + 1}: +${data.importados} importados`);
+        // Para quando não importou nada novo neste lote (tudo já existia)
+        if ((data.importados ?? 0) === 0) break;
       }
-      toast.success(`Drive: ${data.importados} importados · ${data.ignorados} já existiam`);
+      toast.success(`Drive: ${totalImp} importados · ${totalIgn} já existiam`);
       load();
     } catch (e: any) {
       setLastError(e?.message ?? String(e));
