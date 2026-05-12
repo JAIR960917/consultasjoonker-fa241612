@@ -49,9 +49,11 @@ async function gdriveFetch(path: string, init: RequestInit = {}) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const { folder } = await req.json().catch(() => ({}));
-    const folderId = extractFolderId(String(folder ?? ""));
+    const body = await req.json().catch(() => ({}));
+    const folderId = extractFolderId(String(body.folder ?? ""));
     if (!folderId) throw new Error("Informe a URL ou ID da pasta do Google Drive");
+    const pageToken: string | undefined = body.pageToken || undefined;
+    const maxFiles: number = Math.min(Number(body.maxFiles) || 15, 30);
 
     const supa = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -60,21 +62,28 @@ Deno.serve(async (req) => {
 
     let importados = 0, ignorados = 0;
     const erros: string[] = [];
-    let pageToken: string | undefined;
+    const startedAt = Date.now();
+    const TIME_BUDGET_MS = 110_000;
 
-    for (let p = 0; p < 50; p++) {
+    let nextPageToken: string | undefined = pageToken;
+    let processed = 0;
+    let done = false;
+
+    outer: while (true) {
       const q = encodeURIComponent(
         `'${folderId}' in parents and mimeType='application/pdf' and trashed=false`,
       );
       const fields = encodeURIComponent("nextPageToken,files(id,name,modifiedTime,createdTime)");
-      const url = `/files?q=${q}&fields=${fields}&pageSize=200${pageToken ? `&pageToken=${pageToken}` : ""}`;
+      const url = `/files?q=${q}&fields=${fields}&pageSize=100${nextPageToken ? `&pageToken=${nextPageToken}` : ""}`;
       const r = await gdriveFetch(url);
       const txt = await r.text();
       if (!r.ok) throw new Error(`Drive list ${r.status}: ${txt.substring(0, 300)}`);
       const data = JSON.parse(txt);
       const files: any[] = data.files ?? [];
+      nextPageToken = data.nextPageToken;
 
       for (const f of files) {
+        if (processed >= maxFiles || Date.now() - startedAt > TIME_BUDGET_MS) break outer;
         const envelopeId = `gdrive:${f.id}`;
         const { data: existing } = await supa
           .from("contratos_assertiva")
