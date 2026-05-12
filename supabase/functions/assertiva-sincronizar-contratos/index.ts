@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-    const token = await getToken();
+    let { token, source: tokenSource } = await getToken();
 
     let index = 0;
     const size = 50;
@@ -87,7 +87,16 @@ Deno.serve(async (req) => {
     const maxPaginas = 100;
 
     for (let p = 0; p < maxPaginas; p++) {
-      const resp = await filtrar(token, index, size);
+      let resp;
+      try {
+        resp = await filtrar(token, index, size);
+      } catch (e) {
+        const message = (e as Error).message;
+        if (tokenSource !== "saved" || !message.includes("HTTP 401")) throw e;
+        token = await getOAuthToken();
+        tokenSource = "oauth";
+        resp = await filtrar(token, index, size);
+      }
       const envelopes: any[] = resp?.data?.envelopes ?? [];
       if (!envelopes.length) break;
 
