@@ -15,19 +15,27 @@ function extractFolderId(input: string): string | null {
 }
 
 function parseNomeCpf(filename: string): { nome: string | null; cpf: string | null } {
-  const base = filename.replace(/\.pdf$/i, "");
-  // Tenta padrão "NOME - CPF" (CPF pode ter pontos/traços)
-  const m = base.match(/^(.+?)\s*[-–_]\s*([\d.\-\s]{11,})$/);
-  if (m) {
-    const cpf = m[2].replace(/\D/g, "");
-    return { nome: m[1].trim() || null, cpf: cpf.length >= 11 ? cpf.slice(-11) : null };
+  const base = filename.replace(/\.pdf$/i, "").trim();
+  // Pega o PRIMEIRO CPF que aparecer no nome do arquivo (com ou sem máscara).
+  // Aceita formatos: 000.000.000-00, 00000000000, 000 000 000 00 etc.
+  const cpfMatch = base.match(/(\d{3}[.\s-]?\d{3}[.\s-]?\d{3}[.\s-]?\d{2})/);
+  const cpf = cpfMatch ? cpfMatch[1].replace(/\D/g, "") : null;
+
+  // Tenta extrair nome no padrão "NOME - CPF" (nome antes do primeiro CPF).
+  let nome: string | null = null;
+  if (cpfMatch) {
+    const antes = base.slice(0, cpfMatch.index!).replace(/[-–_\s]+$/, "").trim();
+    if (antes && !/^\d+$/.test(antes.replace(/\D/g, ""))) {
+      nome = antes;
+    } else {
+      // Sem nome real no arquivo — usa o próprio nome do arquivo como referência.
+      nome = base || null;
+    }
+  } else {
+    nome = base || null;
   }
-  // Fallback: pega últimos 11 dígitos do nome se houver
-  const digits = base.replace(/\D/g, "");
-  return {
-    nome: base.trim() || null,
-    cpf: digits.length >= 11 ? digits.slice(-11) : null,
-  };
+
+  return { nome, cpf: cpf && cpf.length === 11 ? cpf : null };
 }
 
 async function gdriveFetch(path: string, init: RequestInit = {}) {
