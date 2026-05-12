@@ -10,7 +10,8 @@ import { brl } from "@/lib/finance";
 import { RelatoriosDiariosCard } from "@/components/RelatoriosDiariosCard";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const isGerente = role === "gerente";
   const [stats, setStats] = useState({ consultas: 0, vendas: 0, aprovadas: 0, recusadas: 0, total: 0 });
 
   useEffect(() => {
