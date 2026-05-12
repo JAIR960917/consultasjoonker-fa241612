@@ -81,7 +81,23 @@ export default function ContratosImportados() {
       toast.error("Erro ao gerar link", { description: data?.error ?? error?.message });
       return;
     }
-    window.open(data.url, "_blank");
+    try {
+      const res = await fetch(data.url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = path.split("/").pop() ?? "contrato.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (e: any) {
+      toast.error("Erro ao baixar", {
+        description: "Desative adblock/extensões para o domínio do Supabase ou tente em aba anônima.",
+      });
+    }
   };
 
   const importarDrive = async () => {
