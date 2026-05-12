@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     const folderId = extractFolderId(String(body.folder ?? ""));
     if (!folderId) throw new Error("Informe a URL ou ID da pasta do Google Drive");
     const pageToken: string | undefined = body.pageToken || undefined;
-    const maxFiles: number = Math.min(Number(body.maxFiles) || 50, 80);
+    const maxFiles: number = Math.min(Number(body.maxFiles) || 20, 30);
 
     const supa = createClient(
       Deno.env.get("SUPABASE_URL")!,
