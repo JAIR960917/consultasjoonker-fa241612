@@ -46,9 +46,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <h1 className="text-lg font-bold tracking-tight">{branding?.app_name ?? "CrediFlow"}</h1>
-            <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/60">
-              {branding?.login_tagline ?? "Crédito inteligente"}
-            </p>
           </div>
         </div>
       </div>
