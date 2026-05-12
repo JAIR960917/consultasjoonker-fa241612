@@ -41,6 +41,14 @@ export function ParcelasContrato({ contratoId, contratoAssinado }: {
   const [sincronizando, setSincronizando] = useState(false);
   const [baixandoCarne, setBaixandoCarne] = useState(false);
   const [intervalo, setIntervalo] = useState("30");
+  const [infoText, setInfoText] = useState("Os boletos serão gerados sempre no mesmo dia que o cliente escolheu anteriormente");
+
+  useEffect(() => {
+    supabase.from("settings").select("boletos_info_text" as any).limit(1).maybeSingle().then(({ data }) => {
+      const t = (data as any)?.boletos_info_text;
+      if (t) setInfoText(t);
+    });
+  }, []);
 
   const carregar = async () => {
     setLoading(true);
