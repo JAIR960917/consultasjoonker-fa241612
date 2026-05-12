@@ -131,7 +131,15 @@ export default function Consulta() {
   const total = parseFloat(valorTotal.replace(",", ".")) || 0;
   const entrada = parseFloat(valorEntrada.replace(",", ".")) || 0;
 
-  const aprovado = result && settings ? result.score >= settings.min_score : false;
+  // Bloqueio por segmento do credor: se houver pendência de credor de varejo similar,
+  // não permite venda mesmo com score acima do mínimo.
+  const SEGMENTOS_BLOQUEADOS = ["otica", "ótica", "movei", "móvei", "eletro", "calcado", "calçado", "roupa", "vestuario", "vestuário"];
+  const pendenciasBloqueadoras = (result?.pendencias ?? []).filter((p) => {
+    const c = (p.credor ?? "").toLowerCase();
+    return SEGMENTOS_BLOQUEADOS.some((s) => c.includes(s));
+  });
+  const bloqueadoPorSegmento = pendenciasBloqueadoras.length > 0;
+  const aprovado = result && settings ? result.score >= settings.min_score && !bloqueadoPorSegmento : false;
   const minEntrada = result && settings && total > 0 ? minEntryForScore(total, result.score, settings) : 0;
   const sugerida = result && settings && total > 0 ? suggestedEntry(total, result.score, settings) : 0;
   const financiado = Math.max(total - entrada, 0);
@@ -572,6 +580,26 @@ export default function Consulta() {
               </div>
             </CardContent>
           </Card>
+
+          {bloqueadoPorSegmento && (
+            <Card className="mt-6 shadow-card overflow-hidden border-destructive">
+              <div className="h-1 bg-destructive" />
+              <CardContent className="p-6 flex items-start gap-3">
+                <XCircle className="h-5 w-5 text-destructive mt-0.5" />
+                <div>
+                  <p className="font-semibold text-destructive">Venda bloqueada</p>
+                  <p className="text-sm text-muted-foreground">
+                    Cliente possui pendência financeira em credor do mesmo segmento (Ótica, Móveis, Eletro, Calçados, Roupa ou Vestuário). Não é permitido realizar venda.
+                  </p>
+                  <ul className="mt-2 text-xs text-muted-foreground list-disc pl-5">
+                    {pendenciasBloqueadoras.map((p, i) => (
+                      <li key={i}><span className="font-medium text-foreground">{p.credor}</span> — {brl(p.valor)}</li>
+                    ))}
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Card de pendências (PEFIN/REFIN) */}
           {result.pendencias && result.pendencias.length > 0 ? (
