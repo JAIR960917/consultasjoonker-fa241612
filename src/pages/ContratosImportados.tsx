@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, Download, FileSignature } from "lucide-react";
+import { Loader2, RefreshCw, Download, FileSignature, FolderInput } from "lucide-react";
 import { maskCpf } from "@/lib/finance";
 
 interface Row {
@@ -22,6 +22,8 @@ export default function ContratosImportados() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [importingDrive, setImportingDrive] = useState(false);
+  const [driveFolder, setDriveFolder] = useState("");
   const [search, setSearch] = useState("");
   const [lastError, setLastError] = useState<string | null>(null);
 
@@ -82,6 +84,33 @@ export default function ContratosImportados() {
     window.open(data.url, "_blank");
   };
 
+  const importarDrive = async () => {
+    if (!driveFolder.trim()) {
+      toast.error("Cole a URL ou ID da pasta do Google Drive");
+      return;
+    }
+    setImportingDrive(true);
+    setLastError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("gdrive-importar-contratos", {
+        body: { folder: driveFolder.trim() },
+      });
+      if (error || !data?.ok) {
+        const msg = data?.error ?? error?.message ?? "Erro desconhecido";
+        setLastError(typeof msg === "string" ? msg : JSON.stringify(msg, null, 2));
+        toast.error("Erro ao importar do Drive");
+        return;
+      }
+      toast.success(`Drive: ${data.importados} importados · ${data.ignorados} já existiam`);
+      load();
+    } catch (e: any) {
+      setLastError(e?.message ?? String(e));
+      toast.error("Erro ao importar do Drive");
+    } finally {
+      setImportingDrive(false);
+    }
+  };
+
   const filtered = rows.filter((r) => {
     if (!search) return true;
     const s = search.replace(/\D/g, "");
@@ -93,18 +122,43 @@ export default function ContratosImportados() {
 
   return (
     <AppLayout>
-      <header className="mb-6 flex items-start justify-between gap-4">
+      <header className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <FileSignature className="h-7 w-7" /> Contratos Assertiva
           </h1>
-          <p className="text-muted-foreground">Contratos assinados importados da Assertiva Autentica.</p>
+          <p className="text-muted-foreground">Contratos assinados importados da Assertiva Autentica ou Google Drive.</p>
         </div>
         <Button onClick={sync} disabled={syncing} className="bg-gradient-primary">
           {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-          Sincronizar
+          Sincronizar Assertiva
         </Button>
       </header>
+
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <FolderInput className="h-4 w-4" /> Importar do Google Drive
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2 flex-wrap">
+            <Input
+              placeholder="Cole a URL da pasta (ex: https://drive.google.com/drive/folders/...)"
+              value={driveFolder}
+              onChange={(e) => setDriveFolder(e.target.value)}
+              className="flex-1 min-w-[280px]"
+            />
+            <Button onClick={importarDrive} disabled={importingDrive}>
+              {importingDrive ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FolderInput className="mr-2 h-4 w-4" />}
+              Importar PDFs
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Os PDFs devem estar nomeados como <code>NOME - CPF.pdf</code> para extração automática.
+          </p>
+        </CardContent>
+      </Card>
 
       {lastError && (
         <Card className="mb-4 border-destructive/50">
