@@ -80,12 +80,12 @@ export default function Dashboard() {
           <Card className="shadow-card">
             <CardContent className="p-6">
               <History className="h-7 w-7 text-primary" />
-              <h3 className="mt-4 text-xl font-semibold">Histórico</h3>
+              <h3 className="mt-4 text-xl font-semibold">Pagamento na Entrega</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Veja as últimas consultas e vendas registradas.
+                Gere promissórias para vendas com pagamento na entrega.
               </p>
               <Button asChild variant="outline" className="mt-4">
-                <Link to="/historico">Abrir histórico</Link>
+                <Link to="/pagamento-entrega">Gerar promissória</Link>
               </Button>
             </CardContent>
           </Card>

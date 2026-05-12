@@ -21,6 +21,7 @@ import ConsultasSalvas from "./pages/ConsultasSalvas";
 import RelatoriosDiarios from "./pages/RelatoriosDiarios";
 import Credenciais from "./pages/Credenciais";
 import ContratosImportados from "./pages/ContratosImportados";
+import PagamentoEntrega from "./pages/PagamentoEntrega";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/relatorios-diarios" element={<ProtectedRoute><RelatoriosDiarios /></ProtectedRoute>} />
             <Route path="/credenciais" element={<ProtectedRoute allowedRoles={["desenvolvedor"]}><Credenciais /></ProtectedRoute>} />
             <Route path="/contratos-importados" element={<ProtectedRoute adminOnly><ContratosImportados /></ProtectedRoute>} />
+            <Route path="/pagamento-entrega" element={<ProtectedRoute><PagamentoEntrega /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
