@@ -24,7 +24,7 @@ async function filtrar(token: string, index: number, size: number) {
   const url = `${BASE}/autentica-assinaturas/v1/envelopes/filtrar?status=finalizado&index=${index}&size=${size}`;
   const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
   const txt = await r.text();
-  if (!r.ok) throw new Error(`Filtrar ${r.status}: ${txt.substring(0, 300)}`);
+  if (!r.ok) throw new Error(`GET ${url}\nHTTP ${r.status} ${r.statusText}\nResposta: ${txt}`);
   return JSON.parse(txt);
 }
 
