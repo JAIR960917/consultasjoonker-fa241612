@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     const folderId = extractFolderId(String(body.folder ?? ""));
     if (!folderId) throw new Error("Informe a URL ou ID da pasta do Google Drive");
     const pageToken: string | undefined = body.pageToken || undefined;
-    const maxFiles: number = Math.min(Number(body.maxFiles) || 50, 80);
+    const maxFiles: number = Math.min(Number(body.maxFiles) || 20, 30);
 
     const supa = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     let importados = 0, ignorados = 0;
     const erros: string[] = [];
     const startedAt = Date.now();
-    const TIME_BUDGET_MS = 110_000;
+    const TIME_BUDGET_MS = 60_000;
 
     let nextPageToken: string | undefined = pageToken;
     let processed = 0;
@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
         return true;
       });
 
-      const CONCURRENCY = 5;
+      const CONCURRENCY = 3;
       for (let i = 0; i < pendentes.length; i += CONCURRENCY) {
         if (processed >= maxFiles || Date.now() - startedAt > TIME_BUDGET_MS) break outer;
         const chunk = pendentes.slice(i, i + CONCURRENCY);
