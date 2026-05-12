@@ -3,6 +3,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ interface Settings {
   min_score: number;
   max_installments: number;
   score_tiers: ScoreTier[];
+  boletos_info_text: string;
 }
 
 const defaultTiers: ScoreTier[] = [
@@ -57,6 +59,7 @@ export default function Configuracoes() {
           min_score: data.min_score,
           max_installments: data.max_installments,
           score_tiers: tiers.length ? tiers : defaultTiers,
+          boletos_info_text: (data as any).boletos_info_text ?? "Os boletos serão gerados sempre no mesmo dia que o cliente escolheu anteriormente",
         });
       }
     });
@@ -105,7 +108,8 @@ export default function Configuracoes() {
       min_score: s.min_score,
       max_installments: s.max_installments,
       score_tiers: tiersSorted as unknown as never,
-    }).eq("id", s.id);
+      boletos_info_text: s.boletos_info_text,
+    } as any).eq("id", s.id);
     setSaving(false);
     if (error) toast.error("Erro ao salvar", { description: error.message });
     else {
@@ -155,6 +159,17 @@ export default function Configuracoes() {
                       onChange={(e) => setField("max_installments", parseInt(e.target.value || "0"))}
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Texto informativo dos boletos</Label>
+                  <Textarea
+                    rows={2}
+                    value={s.boletos_info_text}
+                    onChange={(e) => setField("boletos_info_text", e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Mensagem exibida no contrato, acima do botão de emitir boletos.
+                  </p>
                 </div>
               </CardContent>
             </Card>
