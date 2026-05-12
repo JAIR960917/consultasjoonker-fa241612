@@ -227,7 +227,7 @@ export default function ContratosImportados() {
                   </TableCell>
                   <TableCell className="text-right">
                     {r.pdf_path ? (
-                      <Button size="sm" variant="outline" onClick={() => baixar(r.pdf_path!)}>
+                      <Button size="sm" variant="outline" onClick={() => baixar(r.pdf_path!, r.cpf)}>
                         <Download className="mr-2 h-4 w-4" /> Baixar PDF
                       </Button>
                     ) : (
