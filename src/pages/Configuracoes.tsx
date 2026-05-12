@@ -58,7 +58,6 @@ export default function Configuracoes() {
           min_score: data.min_score,
           max_installments: data.max_installments,
           score_tiers: tiers.length ? tiers : defaultTiers,
-          boletos_info_text: (data as any).boletos_info_text ?? "Os boletos serão gerados sempre no mesmo dia que o cliente escolheu anteriormente",
         });
       }
     });
