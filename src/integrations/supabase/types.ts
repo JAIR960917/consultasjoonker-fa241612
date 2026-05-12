@@ -20,6 +20,7 @@ export type Database = {
           accent_foreground: string
           app_name: string
           background: string
+          boletos_info_text: string
           border: string
           card: string
           card_foreground: string
@@ -57,6 +58,7 @@ export type Database = {
           accent_foreground?: string
           app_name?: string
           background?: string
+          boletos_info_text?: string
           border?: string
           card?: string
           card_foreground?: string
@@ -94,6 +96,7 @@ export type Database = {
           accent_foreground?: string
           app_name?: string
           background?: string
+          boletos_info_text?: string
           border?: string
           card?: string
           card_foreground?: string
@@ -652,7 +655,6 @@ export type Database = {
       }
       settings: {
         Row: {
-          boletos_info_text: string
           good_score: number
           id: string
           installment_rates: Json
@@ -663,7 +665,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          boletos_info_text?: string
           good_score?: number
           id?: string
           installment_rates?: Json
@@ -674,7 +675,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          boletos_info_text?: string
           good_score?: number
           id?: string
           installment_rates?: Json
