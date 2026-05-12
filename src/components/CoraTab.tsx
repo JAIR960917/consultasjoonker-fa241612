@@ -66,11 +66,20 @@ export function CoraTab() {
   // Webhook
   const [loadingWebhook, setLoadingWebhook] = useState(false);
   const [webhookResult, setWebhookResult] = useState<unknown>(null);
+  const [empresas, setEmpresas] = useState<Array<{ id: string; nome: string; slug: string }>>([]);
+  const [empresaWebhook, setEmpresaWebhook] = useState<string>("");
+
+  useEffect(() => {
+    supabase.from("empresas").select("id, nome, slug").order("nome").then(({ data }) => {
+      setEmpresas((data ?? []) as Array<{ id: string; nome: string; slug: string }>);
+    });
+  }, []);
 
   const registrarWebhook = async () => {
+    if (!empresaWebhook) { toast.error("Selecione uma empresa"); return; }
     setLoadingWebhook(true);
     setWebhookResult(null);
-    const { data, error } = await supabase.functions.invoke("cora-registrar-webhook", { body: {} });
+    const { data, error } = await supabase.functions.invoke("cora-registrar-webhook", { body: { empresa_id: empresaWebhook } });
     setLoadingWebhook(false);
     if (error) toast.error("Falha", { description: error.message });
     else toast.success("Resposta recebida");
@@ -78,9 +87,10 @@ export function CoraTab() {
   };
 
   const listarWebhooks = async () => {
+    if (!empresaWebhook) { toast.error("Selecione uma empresa"); return; }
     setLoadingWebhook(true);
     setWebhookResult(null);
-    const { data, error } = await supabase.functions.invoke("cora-listar-webhooks", { body: {} });
+    const { data, error } = await supabase.functions.invoke("cora-listar-webhooks", { body: { empresa_id: empresaWebhook } });
     setLoadingWebhook(false);
     if (error) toast.error("Falha", { description: error.message });
     setWebhookResult(data ?? { error: error?.message });
