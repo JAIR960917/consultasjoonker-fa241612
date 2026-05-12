@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
         : addDays(new Date(), intervaloDias);
       const rows: any[] = [];
       for (let i = 1; i <= venda.parcelas; i++) {
-        const venc = i === 1 ? baseDate : addDays(baseDate, intervaloDias * (i - 1));
+        const venc = i === 1 ? baseDate : addMonthsKeepDay(baseDate, i - 1);
         rows.push({
           user_id: venda.user_id,
           venda_id: venda.id,
@@ -264,6 +264,18 @@ Deno.serve(async (req) => {
 function addDays(d: Date, days: number) {
   const r = new Date(d);
   r.setDate(r.getDate() + days);
+  return r;
+}
+
+// Adiciona N meses preservando o dia do mês original.
+// Se o mês destino não tiver esse dia (ex: 31 em fev), usa o último dia do mês.
+function addMonthsKeepDay(d: Date, months: number) {
+  const day = d.getDate();
+  const r = new Date(d);
+  r.setDate(1);
+  r.setMonth(r.getMonth() + months);
+  const lastDay = new Date(r.getFullYear(), r.getMonth() + 1, 0).getDate();
+  r.setDate(Math.min(day, lastDay));
   return r;
 }
 
