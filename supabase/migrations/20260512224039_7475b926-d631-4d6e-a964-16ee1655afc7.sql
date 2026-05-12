@@ -1,0 +1,1 @@
+ALTER TABLE public.settings ADD COLUMN IF NOT EXISTS boletos_info_text TEXT NOT NULL DEFAULT 'Os boletos serão gerados sempre no mesmo dia que o cliente escolheu anteriormente';
