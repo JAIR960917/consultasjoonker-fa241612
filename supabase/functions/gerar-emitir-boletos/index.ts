@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
         : addDays(new Date(), intervaloDias);
       const rows: any[] = [];
       for (let i = 1; i <= venda.parcelas; i++) {
-        const venc = i === 1 ? baseDate : addDays(baseDate, intervaloDias * (i - 1));
+        const venc = i === 1 ? baseDate : addMonthsKeepDay(baseDate, i - 1);
         rows.push({
           user_id: venda.user_id,
           venda_id: venda.id,
