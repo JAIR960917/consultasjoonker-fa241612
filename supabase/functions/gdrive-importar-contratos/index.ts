@@ -82,45 +82,48 @@ Deno.serve(async (req) => {
       const files: any[] = data.files ?? [];
       nextPageToken = data.nextPageToken;
 
-      for (const f of files) {
+      // Filtra os já importados em UMA query (em vez de uma por arquivo)
+      const ids = files.map((f) => `gdrive:${f.id}`);
+      const { data: existentes } = await supa
+        .from("contratos_assertiva")
+        .select("envelope_id")
+        .in("envelope_id", ids);
+      const jaTem = new Set((existentes ?? []).map((e: any) => e.envelope_id));
+
+      const pendentes = files.filter((f) => {
+        if (jaTem.has(`gdrive:${f.id}`)) { ignorados++; return false; }
+        return true;
+      });
+
+      const CONCURRENCY = 5;
+      for (let i = 0; i < pendentes.length; i += CONCURRENCY) {
         if (processed >= maxFiles || Date.now() - startedAt > TIME_BUDGET_MS) break outer;
-        const envelopeId = `gdrive:${f.id}`;
-        const { data: existing } = await supa
-          .from("contratos_assertiva")
-          .select("id")
-          .eq("envelope_id", envelopeId)
-          .maybeSingle();
-        if (existing) { ignorados++; continue; }
-
-        const { nome, cpf } = parseNomeCpf(f.name ?? "");
-
-        let pdfPath: string | null = null;
-        try {
-          const dl = await gdriveFetch(`/files/${f.id}?alt=media`);
-          if (!dl.ok) throw new Error(`download ${dl.status}`);
-          const buf = new Uint8Array(await dl.arrayBuffer());
-          const path = `gdrive/${f.id}.pdf`;
-          const up = await supa.storage
-            .from("contratos-assertiva")
-            .upload(path, buf, { contentType: "application/pdf", upsert: true });
-          if (up.error) throw new Error(up.error.message);
-          pdfPath = path;
-        } catch (e) {
-          erros.push(`${f.name}: ${(e as Error).message}`);
-          continue;
-        }
-
-        await supa.from("contratos_assertiva").insert({
-          envelope_id: envelopeId,
-          nome,
-          cpf,
-          status: "gdrive",
-          data_assinatura: f.modifiedTime ?? f.createdTime ?? null,
-          pdf_path: pdfPath,
-          raw: { source: "gdrive", file: f },
-        });
-        importados++;
-        processed++;
+        const chunk = pendentes.slice(i, i + CONCURRENCY);
+        await Promise.all(chunk.map(async (f) => {
+          const { nome, cpf } = parseNomeCpf(f.name ?? "");
+          try {
+            const dl = await gdriveFetch(`/files/${f.id}?alt=media`);
+            if (!dl.ok) throw new Error(`download ${dl.status}`);
+            const buf = new Uint8Array(await dl.arrayBuffer());
+            const path = `gdrive/${f.id}.pdf`;
+            const up = await supa.storage
+              .from("contratos-assertiva")
+              .upload(path, buf, { contentType: "application/pdf", upsert: true });
+            if (up.error) throw new Error(up.error.message);
+            await supa.from("contratos_assertiva").insert({
+              envelope_id: `gdrive:${f.id}`,
+              nome, cpf,
+              status: "gdrive",
+              data_assinatura: f.modifiedTime ?? f.createdTime ?? null,
+              pdf_path: path,
+              raw: { source: "gdrive", file: f },
+            });
+            importados++;
+            processed++;
+          } catch (e) {
+            erros.push(`${f.name}: ${(e as Error).message}`);
+          }
+        }));
       }
 
       if (!nextPageToken) { done = true; break; }
