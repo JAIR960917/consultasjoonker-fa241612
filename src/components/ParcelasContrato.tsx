@@ -175,11 +175,9 @@ export function ParcelasContrato({ contratoId, contratoAssinado }: {
         </CardTitle>
         <div className="flex items-center gap-2 flex-wrap">
           {parcelas.length === 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Intervalo:</span>
-              <Input type="number" min="1" max="60" value={intervalo} onChange={(e) => setIntervalo(e.target.value)} className="w-20 h-9" />
-              <span className="text-xs text-muted-foreground">dias</span>
-            </div>
+            <span className="text-xs text-muted-foreground">
+              Os boletos serão gerados sempre no mesmo dia que o cliente escolheu anteriormente
+            </span>
           )}
           <Button variant="outline" size="sm" onClick={carregar} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
