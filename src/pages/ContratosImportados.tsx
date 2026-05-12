@@ -23,6 +23,7 @@ export default function ContratosImportados() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [search, setSearch] = useState("");
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
