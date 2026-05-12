@@ -1,48 +1,45 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const ASSERTIVA_BASE = "https://api.assertivasolucoes.com.br";
+const BASE = "https://api.assertivasolucoes.com.br";
 
 async function getToken() {
   const id = Deno.env.get("ASSERTIVA_CLIENT_ID");
   const secret = Deno.env.get("ASSERTIVA_CLIENT_SECRET");
   if (!id || !secret) throw new Error("Credenciais Assertiva não configuradas");
-  const basic = btoa(`${id}:${secret}`);
-  const r = await fetch(`${ASSERTIVA_BASE}/oauth2/v3/token`, {
+  const r = await fetch(`${BASE}/oauth2/v3/token`, {
     method: "POST",
     headers: {
-      Authorization: `Basic ${basic}`,
+      Authorization: `Basic ${btoa(`${id}:${secret}`)}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: "grant_type=client_credentials",
   });
   const txt = await r.text();
-  if (!r.ok) throw new Error(`OAuth Assertiva ${r.status}: ${txt}`);
-  const j = JSON.parse(txt);
-  return j.access_token as string;
+  if (!r.ok) throw new Error(`OAuth ${r.status}: ${txt}`);
+  return JSON.parse(txt).access_token as string;
 }
 
-async function filtrarEnvelopes(token: string, pagina: number) {
-  const r = await fetch(`${ASSERTIVA_BASE}/autentica-assinaturas/v1/envelopes/filtrar`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      status: ["FINALIZADO"],
-      pagina,
-      tamanho: 50,
-    }),
-  });
+async function filtrar(token: string, index: number, size: number) {
+  const url = `${BASE}/autentica-assinaturas/v1/envelopes/filtrar?status=finalizado&index=${index}&size=${size}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
   const txt = await r.text();
   if (!r.ok) throw new Error(`Filtrar ${r.status}: ${txt.substring(0, 300)}`);
   return JSON.parse(txt);
 }
 
+async function obterEnvelope(token: string, envelopeId: string) {
+  const r = await fetch(`${BASE}/autentica-assinaturas/v1/envelopes/${envelopeId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const txt = await r.text();
+  if (!r.ok) throw new Error(`Obter ${envelopeId} ${r.status}: ${txt.substring(0, 200)}`);
+  return JSON.parse(txt);
+}
+
 async function linksAssinados(token: string, envelopeId: string) {
   const r = await fetch(
-    `${ASSERTIVA_BASE}/autentica-assinaturas/v1/envelopes/${envelopeId}/links-documentos-assinados`,
+    `${BASE}/autentica-assinaturas/v1/envelopes/${envelopeId}/links-documentos-assinados`,
     { headers: { Authorization: `Bearer ${token}` } },
   );
   const txt = await r.text();
@@ -52,32 +49,28 @@ async function linksAssinados(token: string, envelopeId: string) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-
   try {
     const supa = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-
     const token = await getToken();
 
-    let pagina = 1;
-    let importados = 0;
-    let ignorados = 0;
-    let erros: string[] = [];
-    const maxPaginas = 50;
+    let index = 0;
+    const size = 50;
+    let importados = 0, ignorados = 0;
+    const erros: string[] = [];
+    const maxPaginas = 100;
 
-    while (pagina <= maxPaginas) {
-      const data = await filtrarEnvelopes(token, pagina);
-      const envelopes: any[] =
-        data?.envelopes ?? data?.content ?? data?.data ?? data?.resposta?.envelopes ?? [];
+    for (let p = 0; p < maxPaginas; p++) {
+      const resp = await filtrar(token, index, size);
+      const envelopes: any[] = resp?.data?.envelopes ?? [];
       if (!envelopes.length) break;
 
       for (const env of envelopes) {
-        const envelopeId = String(env.id ?? env.idEnvelope ?? env.envelope_id);
-        if (!envelopeId || envelopeId === "undefined") continue;
+        const envelopeId = String(env.envelope ?? "");
+        if (!envelopeId) continue;
 
-        // skip já importados
         const { data: existing } = await supa
           .from("contratos_assertiva")
           .select("id")
@@ -85,19 +78,27 @@ Deno.serve(async (req) => {
           .maybeSingle();
         if (existing) { ignorados++; continue; }
 
-        const signatarios: any[] = env.signatarios ?? env.participantes ?? [];
-        const primeiro = signatarios[0] ?? {};
-        const nome = primeiro.nome ?? env.nome ?? null;
-        const cpf = (primeiro.cpf ?? primeiro.documento ?? "").replace(/\D/g, "") || null;
-        const dataAss =
-          env.dataFinalizacao ?? env.dataAssinatura ?? env.dataAtualizacao ?? null;
+        let nome: string | null = env.nome ?? null;
+        let cpf: string | null = null;
+
+        try {
+          const det = await obterEnvelope(token, envelopeId);
+          const sig = det?.data?.signatarios?.[0];
+          if (sig) {
+            nome = sig.nome ?? nome;
+            cpf = (sig.documento ?? "").replace(/\D/g, "") || null;
+          }
+        } catch (e) {
+          erros.push(`detalhe ${envelopeId}: ${(e as Error).message}`);
+          const sig = env.signatarios?.[0];
+          if (sig?.documento) cpf = String(sig.documento).replace(/\D/g, "") || null;
+        }
 
         let pdfPath: string | null = null;
         try {
           const links = await linksAssinados(token, envelopeId);
-          const docs: any[] = links?.documentos ?? links?.links ?? links ?? [];
-          const url = docs[0]?.url ?? docs[0]?.link ?? docs[0];
-          if (typeof url === "string") {
+          const url = links?.data?.links?.[0]?.url;
+          if (url) {
             const pdfRes = await fetch(url);
             if (pdfRes.ok) {
               const buf = new Uint8Array(await pdfRes.arrayBuffer());
@@ -109,22 +110,23 @@ Deno.serve(async (req) => {
             }
           }
         } catch (e) {
-          erros.push(`${envelopeId}: ${(e as Error).message}`);
+          erros.push(`pdf ${envelopeId}: ${(e as Error).message}`);
         }
 
         await supa.from("contratos_assertiva").insert({
           envelope_id: envelopeId,
-          nome, cpf,
-          status: env.status ?? "FINALIZADO",
-          data_assinatura: dataAss,
+          nome,
+          cpf,
+          status: env.status ?? "finalizado",
+          data_assinatura: env.dataHora ?? null,
           pdf_path: pdfPath,
           raw: env,
         });
         importados++;
       }
 
-      if (envelopes.length < 50) break;
-      pagina++;
+      if (envelopes.length < size) break;
+      index += size;
     }
 
     return new Response(
