@@ -30,6 +30,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { to: "/empresas", label: "Empresas", icon: Building2, roles: ["admin", "desenvolvedor"] },
     { to: "/relatorios-empresa", label: "Relatórios por Empresa", icon: BarChart3, roles: ["admin", "desenvolvedor"] },
     { to: "/credenciais", label: "Credenciais", icon: KeyRound, roles: ["desenvolvedor"] },
+    { to: "/contratos-importados", label: "Contratos Assertiva", icon: FileSignature, roles: ["admin", "desenvolvedor"] },
   ];
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
