@@ -80,13 +80,13 @@ export default function ContratosImportados() {
     }
   };
 
-  const baixar = async (path: string) => {
-    const { data, error } = await supabase.functions.invoke("assertiva-baixar-contrato", { body: { path } });
+  const baixar = async (path: string, cpf: string | null) => {
+    const filename = cpf ? `${cpf.replace(/\D/g, "")}.pdf` : undefined;
+    const { data, error } = await supabase.functions.invoke("assertiva-baixar-contrato", { body: { path, filename } });
     if (error || !data?.ok) {
       toast.error("Erro ao gerar link", { description: data?.error ?? error?.message });
       return;
     }
-    // Download direto via URL assinada (Content-Disposition: attachment) — sem buffer no cliente.
     const a = document.createElement("a");
     a.href = data.url;
     a.rel = "noopener";
