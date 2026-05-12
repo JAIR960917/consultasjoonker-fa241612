@@ -159,18 +159,6 @@ export default function Configuracoes() {
                       onChange={(e) => setField("max_installments", parseInt(e.target.value || "0"))}
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Texto informativo dos boletos</Label>
-                  <Textarea
-                    rows={2}
-                    value={s.boletos_info_text}
-                    onChange={(e) => setField("boletos_info_text", e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Mensagem exibida no contrato, acima do botão de emitir boletos.
-                  </p>
-                </div>
               </CardContent>
             </Card>
 
