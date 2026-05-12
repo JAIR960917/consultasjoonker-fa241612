@@ -330,6 +330,42 @@ export type Database = {
           },
         ]
       }
+      contratos_assertiva: {
+        Row: {
+          cpf: string | null
+          data_assinatura: string | null
+          envelope_id: string
+          id: string
+          imported_at: string
+          nome: string | null
+          pdf_path: string | null
+          raw: Json | null
+          status: string | null
+        }
+        Insert: {
+          cpf?: string | null
+          data_assinatura?: string | null
+          envelope_id: string
+          id?: string
+          imported_at?: string
+          nome?: string | null
+          pdf_path?: string | null
+          raw?: Json | null
+          status?: string | null
+        }
+        Update: {
+          cpf?: string | null
+          data_assinatura?: string | null
+          envelope_id?: string
+          id?: string
+          imported_at?: string
+          nome?: string | null
+          pdf_path?: string | null
+          raw?: Json | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       cora_webhook_logs: {
         Row: {
           cora_invoice_id: string | null
