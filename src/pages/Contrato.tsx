@@ -214,6 +214,10 @@ export default function Contrato() {
 
   const submitSignature = async () => {
     if (!c) return;
+    if (!comprovanteFile) {
+      toast.error("Anexe o comprovante de residência do cliente");
+      return;
+    }
     setPhoneChoiceOpen(false);
     setSigning(true);
 
@@ -476,7 +480,9 @@ export default function Contrato() {
         </CardContent>
       </Card>
 
-      <ParcelasContrato contratoId={c.id} contratoAssinado={assinado} />
+      {(!venda || venda.parcelas > 1) && (
+        <ParcelasContrato contratoId={c.id} contratoAssinado={assinado} />
+      )}
 
       <SignatureMockDialog
         open={signDialog}
@@ -520,17 +526,18 @@ export default function Contrato() {
 
           <div className="space-y-2 rounded-lg border p-3">
             <Label htmlFor="comprovante" className="text-sm font-medium">
-              Comprovante de residência do cliente
+              Comprovante de residência do cliente <span className="text-destructive">*</span>
             </Label>
             <input
               id="comprovante"
               type="file"
               accept="image/*,application/pdf"
+              required
               onChange={(e) => setComprovanteFile(e.target.files?.[0] ?? null)}
               className="block w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-primary-foreground file:cursor-pointer"
             />
             <p className="text-xs text-muted-foreground">
-              Será anexado à assinatura na ZapSign como documento adicional. Aceita imagem ou PDF.
+              Obrigatório. Será anexado à assinatura na ZapSign como documento adicional. Aceita imagem ou PDF.
             </p>
             {comprovanteFile && (
               <p className="text-xs text-foreground">
@@ -543,7 +550,7 @@ export default function Contrato() {
             <Button variant="outline" onClick={() => setPhoneChoiceOpen(false)}>Cancelar</Button>
             <Button
               onClick={submitSignature}
-              disabled={signing}
+              disabled={signing || !comprovanteFile}
               className="bg-gradient-primary"
             >
               {signing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PenLine className="mr-2 h-4 w-4" />}
