@@ -18,6 +18,7 @@ import Contrato from "./pages/Contrato";
 import Contratos from "./pages/Contratos";
 import RelatoriosEmpresa from "./pages/RelatoriosEmpresa";
 import ConsultasSalvas from "./pages/ConsultasSalvas";
+import ConsultasSalvasPgEntrega from "./pages/ConsultasSalvasPgEntrega";
 import RelatoriosDiarios from "./pages/RelatoriosDiarios";
 import Credenciais from "./pages/Credenciais";
 import ContratosImportados from "./pages/ContratosImportados";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/credenciais" element={<ProtectedRoute allowedRoles={["desenvolvedor"]}><Credenciais /></ProtectedRoute>} />
             <Route path="/contratos-importados" element={<ProtectedRoute adminOnly><ContratosImportados /></ProtectedRoute>} />
             <Route path="/pagamento-entrega" element={<ProtectedRoute><PagamentoEntrega /></ProtectedRoute>} />
+            <Route path="/consultas-salvas-pg-entrega" element={<ProtectedRoute><ConsultasSalvasPgEntrega /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
