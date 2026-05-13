@@ -79,7 +79,40 @@ export function CoraTab() {
     supabase.from("empresas").select("id, nome, slug").order("nome").then(({ data }) => {
       setEmpresas((data ?? []) as Array<{ id: string; nome: string; slug: string }>);
     });
+    setLoadingCobranca(true);
+    supabase
+      .from("settings")
+      .select("id, cora_interest_monthly_percent, cora_fine_percent, cora_discount_percent")
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setSettingsId(data.id);
+          setCobranca({
+            juros: String(data.cora_interest_monthly_percent ?? 0),
+            multa: String(data.cora_fine_percent ?? 0),
+            desconto: String(data.cora_discount_percent ?? 0),
+          });
+        }
+        setLoadingCobranca(false);
+      });
   }, []);
+
+  const salvarCobranca = async () => {
+    if (!settingsId) { toast.error("Configurações não encontradas"); return; }
+    setSavingCobranca(true);
+    const { error } = await supabase
+      .from("settings")
+      .update({
+        cora_interest_monthly_percent: Number(cobranca.juros) || 0,
+        cora_fine_percent: Number(cobranca.multa) || 0,
+        cora_discount_percent: Number(cobranca.desconto) || 0,
+      })
+      .eq("id", settingsId);
+    setSavingCobranca(false);
+    if (error) toast.error("Falha ao salvar", { description: error.message });
+    else toast.success("Configuração salva");
+  };
 
   const registrarWebhook = async () => {
     if (!empresaWebhook) { toast.error("Selecione uma empresa"); return; }
