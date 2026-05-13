@@ -189,7 +189,7 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const payload = {
+      const payload: any = {
         code: `V${venda.id.slice(0, 8)}-P${p.numero_parcela}`,
         customer: {
           name: venda.nome || contrato.nome,
@@ -204,11 +204,9 @@ Deno.serve(async (req) => {
         ],
         payment_terms: {
           due_date: p.vencimento,
-          ...(multaPercent > 0 ? { fine: { rate: multaPercent } } : {}),
-          ...(jurosMensal > 0 ? { interest: { rate: jurosMensal } } : {}),
-          ...(descontoPercent > 0 ? {
-            discount: { type: "PERCENT", value: descontoPercent },
-          } : {}),
+          ...(multaPercent > 0 ? { fine_percent: multaPercent } : {}),
+          ...(jurosMensal > 0 ? { interest_monthly_percent: jurosMensal } : {}),
+          ...(descontoPercent > 0 ? { discount_percent: descontoPercent } : {}),
         },
         payment_forms: ["BANK_SLIP", "PIX"],
       };
