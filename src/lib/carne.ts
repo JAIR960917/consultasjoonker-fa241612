@@ -32,6 +32,8 @@ export interface CarneOptions {
   parcelas: CarneParcela[];
   descricao?: string; // ex.: "Oculos"
   data_emissao?: string; // YYYY-MM-DD
+  multa_percent?: number; // % de multa após vencimento
+  juros_mensal_percent?: number; // % de juros ao mês
 }
 
 const fmtBRL = (n: number) =>
@@ -266,10 +268,13 @@ async function drawBoletoBlock(
   const descPrefix = opts.descricao ? `${opts.descricao} ` : "";
   doc.text(`${descPrefix}Parcela ${p.numero_parcela}/${p.total_parcelas}`, xComp + 4, cy + 14);
   doc.setFontSize(7.5);
-  const aviso = doc.splitTextToSize(
-    "Após o vencimento, aplicar multa de R$ 0,20 e juros de 1,00% ao mês.",
-    bigW - 8,
-  );
+  const fmtPct = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const multaPct = Number(opts.multa_percent ?? 0);
+  const jurosPct = Number(opts.juros_mensal_percent ?? 0);
+  const avisoTxt = (multaPct > 0 || jurosPct > 0)
+    ? `Após o vencimento, aplicar multa de ${fmtPct(multaPct)}% e juros de ${fmtPct(jurosPct)}% ao mês.`
+    : "Após o vencimento, conforme contrato.";
+  const aviso = doc.splitTextToSize(avisoTxt, bigW - 8);
   doc.text(aviso, xComp + 4, cy + 26);
 
   const subLabels = [
