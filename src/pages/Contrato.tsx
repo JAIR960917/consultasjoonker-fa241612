@@ -526,17 +526,18 @@ export default function Contrato() {
 
           <div className="space-y-2 rounded-lg border p-3">
             <Label htmlFor="comprovante" className="text-sm font-medium">
-              Comprovante de residência do cliente
+              Comprovante de residência do cliente <span className="text-destructive">*</span>
             </Label>
             <input
               id="comprovante"
               type="file"
               accept="image/*,application/pdf"
+              required
               onChange={(e) => setComprovanteFile(e.target.files?.[0] ?? null)}
               className="block w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-primary-foreground file:cursor-pointer"
             />
             <p className="text-xs text-muted-foreground">
-              Será anexado à assinatura na ZapSign como documento adicional. Aceita imagem ou PDF.
+              Obrigatório. Será anexado à assinatura na ZapSign como documento adicional. Aceita imagem ou PDF.
             </p>
             {comprovanteFile && (
               <p className="text-xs text-foreground">
