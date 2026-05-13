@@ -20,7 +20,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   type Item = { to: string; label: string; icon: typeof LayoutDashboard; roles: Array<"admin"|"gerente"|"desenvolvedor"> };
   const items: Item[] = [
     { to: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "gerente", "desenvolvedor"] },
-    { to: "/consulta", label: "Nova consulta", icon: Search, roles: ["admin", "gerente", "desenvolvedor"] },
+    { to: "/consulta", label: "Vender no boleto", icon: Search, roles: ["admin", "gerente", "desenvolvedor"] },
     { to: "/pagamento-entrega", label: "Pagamento na Entrega", icon: Wallet, roles: ["admin", "gerente", "desenvolvedor"] },
     { to: "/consultas-salvas-pg-entrega", label: "Consultas Salvas PG Entrega", icon: Wallet, roles: ["admin", "gerente", "desenvolvedor"] },
     { to: "/contratos", label: "Contratos", icon: FileSignature, roles: ["admin", "gerente", "desenvolvedor"] },
