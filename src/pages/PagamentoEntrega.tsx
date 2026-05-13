@@ -76,6 +76,18 @@ export default function PagamentoEntrega() {
         return;
       }
       setNome(dados.nome);
+      // Salva consulta de pagamento na entrega
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        await supabase.from("consultas_pg_entrega").insert({
+          user_id: u.user!.id,
+          cpf: digits,
+          nome: dados.nome,
+          raw: dados,
+          cidade: cidadeUsuario ?? "",
+          empresa_id: empresaId ?? null,
+        });
+      } catch { /* não bloqueia o fluxo */ }
       toast.success("Cliente encontrado");
     } catch (e) {
       toast.error((e as Error).message || "Erro ao consultar");
