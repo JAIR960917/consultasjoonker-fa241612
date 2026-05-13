@@ -135,7 +135,7 @@ export default function Consulta() {
 
   // Admin: carrega lista de empresas ativas para seleção na venda
   useEffect(() => {
-    if (role !== "admin") return;
+    if (role !== "admin" && role !== "desenvolvedor") return;
     supabase
       .from("empresas")
       .select("id, nome, cidade")
@@ -830,7 +830,7 @@ export default function Consulta() {
         clienteNome={result?.nome}
         cidadePadrao={cidadeUsuario || ""}
         empresaPadraoId={empresaId}
-        empresasDisponiveis={role === "admin" ? empresasDisponiveis : undefined}
+        empresasDisponiveis={(role === "admin" || role === "desenvolvedor") ? empresasDisponiveis : undefined}
       />
     </AppLayout>
   );

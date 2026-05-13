@@ -55,7 +55,7 @@ export default function PagamentoEntrega() {
   const [empresasDisponiveis, setEmpresasDisponiveis] = useState<EmpresaOption[]>([]);
 
   useEffect(() => {
-    if (role !== "admin") return;
+    if (role !== "admin" && role !== "desenvolvedor") return;
     supabase
       .from("empresas")
       .select("id, nome, cidade")
@@ -347,7 +347,7 @@ export default function PagamentoEntrega() {
         clienteNome={nome ?? undefined}
         cidadePadrao={cidadeUsuario ?? undefined}
         empresaPadraoId={empresaId ?? null}
-        empresasDisponiveis={role === "admin" ? empresasDisponiveis : undefined}
+        empresasDisponiveis={(role === "admin" || role === "desenvolvedor") ? empresasDisponiveis : undefined}
       />
     </AppLayout>
   );

@@ -28,7 +28,7 @@ interface Venda {
 
 export default function Historico() {
   const { role } = useAuth();
-  const isAdmin = role === "admin";
+  const isAdmin = role === "admin" || role === "desenvolvedor";
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [target, setTarget] = useState<Venda | null>(null);
   const [deleting, setDeleting] = useState(false);

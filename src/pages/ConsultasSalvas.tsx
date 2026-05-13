@@ -48,7 +48,7 @@ interface OperadorOpt { user_id: string; full_name: string; email: string }
 
 export default function ConsultasSalvas() {
   const { role } = useAuth();
-  const isAdmin = role === "admin";
+  const isAdmin = role === "admin" || role === "desenvolvedor";
   const [rows, setRows] = useState<CacheRow[]>([]);
   const [consultas, setConsultas] = useState<ConsultaRow[]>([]);
   const [operadores, setOperadores] = useState<OperadorOpt[]>([]);
@@ -304,7 +304,7 @@ export default function ConsultasSalvas() {
                       <TableHead className="text-right">Score</TableHead>
                       <TableHead>Consultado</TableHead>
                       <TableHead>Validade</TableHead>
-                      {role === "admin" && <TableHead className="text-right">Ações</TableHead>}
+                      {isAdmin && <TableHead className="text-right">Ações</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -332,7 +332,7 @@ export default function ConsultasSalvas() {
                               </Badge>
                             )}
                           </TableCell>
-                          {role === "admin" && (
+                          {isAdmin && (
                             <TableCell className="text-right">
                               <Button size="sm" variant="ghost" onClick={() => remover(r.id)}>
                                 <Trash2 className="h-4 w-4" />

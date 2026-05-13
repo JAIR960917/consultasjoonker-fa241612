@@ -115,7 +115,7 @@ export default function ConsultasSalvasPgEntrega() {
                       <TableHead>Nome</TableHead>
                       <TableHead>Cidade</TableHead>
                       <TableHead>Consultado</TableHead>
-                      {role === "admin" && <TableHead className="text-right">Ações</TableHead>}
+                      {(role === "admin" || role === "desenvolvedor") && <TableHead className="text-right">Ações</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -127,7 +127,7 @@ export default function ConsultasSalvasPgEntrega() {
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(r.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                         </TableCell>
-                        {role === "admin" && (
+                        {(role === "admin" || role === "desenvolvedor") && (
                           <TableCell className="text-right">
                             <Button size="sm" variant="ghost" onClick={() => remover(r.id)}>
                               <Trash2 className="h-4 w-4" />
