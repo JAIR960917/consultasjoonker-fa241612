@@ -18,6 +18,7 @@ import Contrato from "./pages/Contrato";
 import Contratos from "./pages/Contratos";
 import RelatoriosEmpresa from "./pages/RelatoriosEmpresa";
 import ConsultasSalvas from "./pages/ConsultasSalvas";
+import ConsultasSalvasPgEntrega from "./pages/ConsultasSalvasPgEntrega";
 import RelatoriosDiarios from "./pages/RelatoriosDiarios";
 import Credenciais from "./pages/Credenciais";
 import ContratosImportados from "./pages/ContratosImportados";
