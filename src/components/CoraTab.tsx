@@ -338,6 +338,56 @@ export function CoraTab() {
               </p>
             </TabsContent>
 
+            {/* COBRANÇA */}
+            <TabsContent value="cobranca" className="space-y-4 pt-4">
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
+                <p className="text-muted-foreground">
+                  Configure os encargos aplicados aos boletos emitidos na Cora. Esses valores
+                  são enviados em <code>payment_terms</code> ao criar cada boleto.
+                  Use <strong>0</strong> para não cobrar.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label>Juros mensal (%)</Label>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={cobranca.juros}
+                    onChange={(e) => setCobranca((c) => ({ ...c, juros: e.target.value }))}
+                    disabled={loadingCobranca}
+                  />
+                  <p className="text-xs text-muted-foreground">Aplicado proporcionalmente após o vencimento.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Multa por atraso (%)</Label>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={cobranca.multa}
+                    onChange={(e) => setCobranca((c) => ({ ...c, multa: e.target.value }))}
+                    disabled={loadingCobranca}
+                  />
+                  <p className="text-xs text-muted-foreground">Cobrada uma vez se o boleto vencer.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Desconto por antecipação (%)</Label>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={cobranca.desconto}
+                    onChange={(e) => setCobranca((c) => ({ ...c, desconto: e.target.value }))}
+                    disabled={loadingCobranca}
+                  />
+                  <p className="text-xs text-muted-foreground">Pago um dia antes do vencimento.</p>
+                </div>
+              </div>
+
+              <Button onClick={salvarCobranca} disabled={savingCobranca || loadingCobranca} size="lg">
+                {savingCobranca
+                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Salvando...</>
+                  : "Salvar configuração"}
+              </Button>
+            </TabsContent>
+
             {/* WEBHOOK */}
             <TabsContent value="webhook" className="space-y-4 pt-4">
               <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm space-y-2">
