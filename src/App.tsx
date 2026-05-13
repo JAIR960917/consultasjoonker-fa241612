@@ -24,7 +24,7 @@ import Credenciais from "./pages/Credenciais";
 import ContratosImportados from "./pages/ContratosImportados";
 import PagamentoEntrega from "./pages/PagamentoEntrega";
 import ResumoVendasRisco from "./pages/ResumoVendasRisco";
-import ExportSecrets from "./pages/ExportSecrets";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
