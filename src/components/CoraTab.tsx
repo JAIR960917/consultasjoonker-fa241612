@@ -204,6 +204,7 @@ export function CoraTab() {
             <TabsList>
               <TabsTrigger value="auth">Autenticação</TabsTrigger>
               <TabsTrigger value="boleto">Emitir boleto teste</TabsTrigger>
+              <TabsTrigger value="cobranca">Cobrança</TabsTrigger>
               <TabsTrigger value="webhook">Webhook</TabsTrigger>
             </TabsList>
 
