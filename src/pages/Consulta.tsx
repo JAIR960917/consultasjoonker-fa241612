@@ -48,6 +48,27 @@ interface HistoricoItem {
   nome: string | null;
 }
 
+async function getFunctionErrorMessage(error: unknown) {
+  const context = typeof error === "object" && error && "context" in error
+    ? (error as { context?: Response }).context
+    : null;
+
+  if (context) {
+    const text = await context.clone().text().catch(() => "");
+    if (text) {
+      try {
+        const json = JSON.parse(text) as { error?: string; details?: unknown };
+        const details = json.details ? ` — ${JSON.stringify(json.details).slice(0, 300)}` : "";
+        return `${json.error ?? text}${details}`;
+      } catch {
+        return text.slice(0, 500);
+      }
+    }
+  }
+
+  return error instanceof Error ? error.message : String(error);
+}
+
 export default function Consulta() {
   const nav = useNavigate();
   const { cidade: cidadeUsuario, role, empresaId } = useAuth();
@@ -161,7 +182,7 @@ export default function Consulta() {
         payload.score = Number.isFinite(s) ? s : 850;
       }
       const { data, error } = await supabase.functions.invoke("consulta-cpf", { body: payload });
-      if (error) throw error;
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       const resp = data as { error?: string; notFound?: boolean; serasaUnauthorized?: boolean } & ConsultaResult;
       if (resp?.notFound) {
         toast.warning("CPF não encontrado", { description: resp.error ?? "Documento não localizado na base da Serasa." });
@@ -214,7 +235,7 @@ export default function Consulta() {
           const { data, error } = await supabase.functions.invoke("consulta-cpf", {
             body: { cpf: caso.cpf },
           });
-          if (error) throw error;
+          if (error) throw new Error(await getFunctionErrorMessage(error));
           const resp = data as {
             error?: string;
             notFound?: boolean;
