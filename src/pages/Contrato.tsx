@@ -476,7 +476,9 @@ export default function Contrato() {
         </CardContent>
       </Card>
 
-      <ParcelasContrato contratoId={c.id} contratoAssinado={assinado} />
+      {(!venda || venda.parcelas > 1) && (
+        <ParcelasContrato contratoId={c.id} contratoAssinado={assinado} />
+      )}
 
       <SignatureMockDialog
         open={signDialog}
