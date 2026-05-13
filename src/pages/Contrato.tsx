@@ -550,7 +550,7 @@ export default function Contrato() {
             <Button variant="outline" onClick={() => setPhoneChoiceOpen(false)}>Cancelar</Button>
             <Button
               onClick={submitSignature}
-              disabled={signing}
+              disabled={signing || !comprovanteFile}
               className="bg-gradient-primary"
             >
               {signing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PenLine className="mr-2 h-4 w-4" />}
