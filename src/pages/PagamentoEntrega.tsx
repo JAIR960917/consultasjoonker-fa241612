@@ -62,6 +62,23 @@ export default function PagamentoEntrega() {
     setValorTotal("");
     setValorEntrada("");
     try {
+      // 1) Verifica se já existe consulta salva para este CPF
+      const { data: cached } = await supabase
+        .from("consultas_pg_entrega")
+        .select("nome")
+        .eq("cpf", digits)
+        .not("nome", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (cached?.nome) {
+        setNome(cached.nome);
+        toast.success("Cliente encontrado (consulta salva)");
+        return;
+      }
+
+      // 2) Não está salvo — consulta na APIFull
       const { data, error } = await supabase.functions.invoke("apifull-consulta-cpf", {
         body: { cpf: digits },
       });
@@ -76,7 +93,7 @@ export default function PagamentoEntrega() {
         return;
       }
       setNome(dados.nome);
-      // Salva consulta de pagamento na entrega
+      // Salva no histórico de consultas PG Entrega
       try {
         const { data: u } = await supabase.auth.getUser();
         await supabase.from("consultas_pg_entrega").insert({
