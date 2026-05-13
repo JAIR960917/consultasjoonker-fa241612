@@ -63,6 +63,12 @@ export function CoraTab() {
   const [loadingBoleto, setLoadingBoleto] = useState(false);
   const [boletoResult, setBoletoResult] = useState<BoletoResult | null>(null);
 
+  // Cobrança (juros/multa/desconto)
+  const [cobranca, setCobranca] = useState({ juros: "0", multa: "0", desconto: "0" });
+  const [settingsId, setSettingsId] = useState<string | null>(null);
+  const [loadingCobranca, setLoadingCobranca] = useState(false);
+  const [savingCobranca, setSavingCobranca] = useState(false);
+
   // Webhook
   const [loadingWebhook, setLoadingWebhook] = useState(false);
   const [webhookResult, setWebhookResult] = useState<unknown>(null);
