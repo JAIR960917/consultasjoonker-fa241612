@@ -56,7 +56,7 @@ function formatHora(iso: string) {
 
 export default function RelatoriosDiarios() {
   const { role } = useAuth();
-  const isAdmin = role === "admin";
+  const isAdmin = role === "admin" || role === "desenvolvedor";
 
   const [relatorios, setRelatorios] = useState<Relatorio[]>([]);
   const [empresas, setEmpresas] = useState<EmpresaOpt[]>([]);
