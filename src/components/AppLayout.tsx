@@ -6,7 +6,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
-  LayoutDashboard, Search, History, Settings, Users, LogOut, Wallet, FileSignature, Sun, Moon, Menu, Building2, BarChart3, Database, ClipboardList, KeyRound,
+  LayoutDashboard, Search, History, Settings, Users, LogOut, Wallet, FileSignature, Sun, Moon, Menu, Building2, BarChart3, Database, ClipboardList, KeyRound, ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +31,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { to: "/usuarios", label: "Usuários", icon: Users, roles: ["admin", "desenvolvedor"] },
     { to: "/empresas", label: "Empresas", icon: Building2, roles: ["admin", "desenvolvedor"] },
     { to: "/relatorios-empresa", label: "Relatórios por Empresa", icon: BarChart3, roles: ["admin", "desenvolvedor"] },
+    { to: "/resumo-vendas-risco", label: "Resumo Vendas por Risco", icon: ShieldAlert, roles: ["admin", "desenvolvedor"] },
     { to: "/credenciais", label: "Credenciais", icon: KeyRound, roles: ["desenvolvedor"] },
     { to: "/contratos-importados", label: "Contratos Assertiva", icon: FileSignature, roles: ["admin", "desenvolvedor"] },
   ];
