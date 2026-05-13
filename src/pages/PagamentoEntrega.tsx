@@ -21,6 +21,27 @@ function formatCPF(value: string) {
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
+async function getFunctionErrorMessage(error: unknown) {
+  const context = typeof error === "object" && error && "context" in error
+    ? (error as { context?: Response }).context
+    : null;
+
+  if (context) {
+    const text = await context.clone().text().catch(() => "");
+    if (text) {
+      try {
+        const json = JSON.parse(text) as { error?: string; details?: unknown };
+        const details = json.details ? ` — ${JSON.stringify(json.details).slice(0, 300)}` : "";
+        return `${json.error ?? text}${details}`;
+      } catch {
+        return text.slice(0, 500);
+      }
+    }
+  }
+
+  return error instanceof Error ? error.message : String(error);
+}
+
 export default function PagamentoEntrega() {
   const nav = useNavigate();
   const { cidade: cidadeUsuario, role, empresaId } = useAuth();
@@ -82,7 +103,7 @@ export default function PagamentoEntrega() {
       const { data, error } = await supabase.functions.invoke("apifull-consulta-cpf", {
         body: { cpf: digits },
       });
-      if (error) throw error;
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       if (data?.status && data.status !== "sucesso") {
         toast.error("CPF não encontrado");
         return;
