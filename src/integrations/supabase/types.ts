@@ -688,6 +688,9 @@ export type Database = {
       }
       settings: {
         Row: {
+          cora_discount_percent: number
+          cora_fine_percent: number
+          cora_interest_monthly_percent: number
           good_score: number
           id: string
           installment_rates: Json
@@ -698,6 +701,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cora_discount_percent?: number
+          cora_fine_percent?: number
+          cora_interest_monthly_percent?: number
           good_score?: number
           id?: string
           installment_rates?: Json
@@ -708,6 +714,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cora_discount_percent?: number
+          cora_fine_percent?: number
+          cora_interest_monthly_percent?: number
           good_score?: number
           id?: string
           installment_rates?: Json
