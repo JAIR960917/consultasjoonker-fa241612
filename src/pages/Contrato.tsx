@@ -364,7 +364,7 @@ export default function Contrato() {
             <FileDown className="mr-2 h-4 w-4" /> Baixar cópia
           </Button>
 
-          {role === "admin" && (
+          {(role === "admin" || role === "desenvolvedor") && (
             <Button
               variant="outline"
               onClick={() => setDeleteDialog(true)}
