@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     // 2) Carrega venda
     const { data: venda, error: vendaErr } = await admin
       .from("vendas")
-      .select("id, user_id, parcelas, valor_parcela, valor_financiado, cpf, nome")
+      .select("id, user_id, parcelas, valor_parcela, valor_financiado, cpf, nome, primeiro_vencimento")
       .eq("id", contrato.venda_id)
       .maybeSingle();
     if (vendaErr || !venda) return json({ ok: false, error: "Venda não encontrada" }, 404);
@@ -98,9 +98,10 @@ Deno.serve(async (req) => {
 
     let parcelas = existentes ?? [];
     if (parcelas.length === 0) {
-      // Cria as parcelas
-      const baseDate = body.primeiro_vencimento
-        ? new Date(body.primeiro_vencimento + "T00:00:00")
+      // Cria as parcelas — prioridade: body.primeiro_vencimento → venda.primeiro_vencimento → hoje + intervalo
+      const vencEscolhido = body.primeiro_vencimento || venda.primeiro_vencimento;
+      const baseDate = vencEscolhido
+        ? new Date(vencEscolhido + "T00:00:00")
         : addDays(new Date(), intervaloDias);
       const rows: any[] = [];
       for (let i = 1; i <= venda.parcelas; i++) {
