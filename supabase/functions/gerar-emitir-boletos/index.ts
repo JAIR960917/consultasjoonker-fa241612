@@ -202,7 +202,12 @@ Deno.serve(async (req) => {
             amount: valorCentavos,
           },
         ],
-        payment_terms: { due_date: p.vencimento },
+        payment_terms: {
+          due_date: p.vencimento,
+          ...(jurosMensal > 0 ? { interest_monthly_percent: jurosMensal } : {}),
+          ...(multaPercent > 0 ? { fine_percent: multaPercent } : {}),
+          ...(descontoPercent > 0 ? { discount_percent: descontoPercent } : {}),
+        },
         payment_forms: ["BANK_SLIP", "PIX"],
       };
 
