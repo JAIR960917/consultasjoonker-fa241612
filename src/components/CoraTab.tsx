@@ -63,6 +63,12 @@ export function CoraTab() {
   const [loadingBoleto, setLoadingBoleto] = useState(false);
   const [boletoResult, setBoletoResult] = useState<BoletoResult | null>(null);
 
+  // Cobrança (juros/multa/desconto)
+  const [cobranca, setCobranca] = useState({ juros: "0", multa: "0", desconto: "0" });
+  const [settingsId, setSettingsId] = useState<string | null>(null);
+  const [loadingCobranca, setLoadingCobranca] = useState(false);
+  const [savingCobranca, setSavingCobranca] = useState(false);
+
   // Webhook
   const [loadingWebhook, setLoadingWebhook] = useState(false);
   const [webhookResult, setWebhookResult] = useState<unknown>(null);
@@ -73,7 +79,40 @@ export function CoraTab() {
     supabase.from("empresas").select("id, nome, slug").order("nome").then(({ data }) => {
       setEmpresas((data ?? []) as Array<{ id: string; nome: string; slug: string }>);
     });
+    setLoadingCobranca(true);
+    supabase
+      .from("settings")
+      .select("id, cora_interest_monthly_percent, cora_fine_percent, cora_discount_percent")
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setSettingsId(data.id);
+          setCobranca({
+            juros: String(data.cora_interest_monthly_percent ?? 0),
+            multa: String(data.cora_fine_percent ?? 0),
+            desconto: String(data.cora_discount_percent ?? 0),
+          });
+        }
+        setLoadingCobranca(false);
+      });
   }, []);
+
+  const salvarCobranca = async () => {
+    if (!settingsId) { toast.error("Configurações não encontradas"); return; }
+    setSavingCobranca(true);
+    const { error } = await supabase
+      .from("settings")
+      .update({
+        cora_interest_monthly_percent: Number(cobranca.juros) || 0,
+        cora_fine_percent: Number(cobranca.multa) || 0,
+        cora_discount_percent: Number(cobranca.desconto) || 0,
+      })
+      .eq("id", settingsId);
+    setSavingCobranca(false);
+    if (error) toast.error("Falha ao salvar", { description: error.message });
+    else toast.success("Configuração salva");
+  };
 
   const registrarWebhook = async () => {
     if (!empresaWebhook) { toast.error("Selecione uma empresa"); return; }
@@ -165,6 +204,7 @@ export function CoraTab() {
             <TabsList>
               <TabsTrigger value="auth">Autenticação</TabsTrigger>
               <TabsTrigger value="boleto">Emitir boleto teste</TabsTrigger>
+              <TabsTrigger value="cobranca">Cobrança</TabsTrigger>
               <TabsTrigger value="webhook">Webhook</TabsTrigger>
             </TabsList>
 
@@ -296,6 +336,56 @@ export function CoraTab() {
                 ⚠️ Ambiente de produção: o boleto é real. Use valores baixos (R$ 1,00) para testar.
                 Não persiste em vendas/parcelas.
               </p>
+            </TabsContent>
+
+            {/* COBRANÇA */}
+            <TabsContent value="cobranca" className="space-y-4 pt-4">
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
+                <p className="text-muted-foreground">
+                  Configure os encargos aplicados aos boletos emitidos na Cora. Esses valores
+                  são enviados em <code>payment_terms</code> ao criar cada boleto.
+                  Use <strong>0</strong> para não cobrar.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label>Juros mensal (%)</Label>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={cobranca.juros}
+                    onChange={(e) => setCobranca((c) => ({ ...c, juros: e.target.value }))}
+                    disabled={loadingCobranca}
+                  />
+                  <p className="text-xs text-muted-foreground">Aplicado proporcionalmente após o vencimento.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Multa por atraso (%)</Label>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={cobranca.multa}
+                    onChange={(e) => setCobranca((c) => ({ ...c, multa: e.target.value }))}
+                    disabled={loadingCobranca}
+                  />
+                  <p className="text-xs text-muted-foreground">Cobrada uma vez se o boleto vencer.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Desconto por antecipação (%)</Label>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={cobranca.desconto}
+                    onChange={(e) => setCobranca((c) => ({ ...c, desconto: e.target.value }))}
+                    disabled={loadingCobranca}
+                  />
+                  <p className="text-xs text-muted-foreground">Pago um dia antes do vencimento.</p>
+                </div>
+              </div>
+
+              <Button onClick={salvarCobranca} disabled={savingCobranca || loadingCobranca} size="lg">
+                {savingCobranca
+                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Salvando...</>
+                  : "Salvar configuração"}
+              </Button>
             </TabsContent>
 
             {/* WEBHOOK */}

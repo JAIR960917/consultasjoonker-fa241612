@@ -161,6 +161,16 @@ Deno.serve(async (req) => {
     if (!tokenResp.ok) return json({ ok: false, error: `Auth Cora: ${tokenText.slice(0, 300)}` }, 502);
     const accessToken = JSON.parse(tokenText).access_token as string;
 
+    // Carrega configurações de cobrança (juros/multa/desconto)
+    const { data: settingsRow } = await admin
+      .from("settings")
+      .select("cora_interest_monthly_percent, cora_fine_percent, cora_discount_percent")
+      .limit(1)
+      .maybeSingle();
+    const jurosMensal = Number(settingsRow?.cora_interest_monthly_percent ?? 0);
+    const multaPercent = Number(settingsRow?.cora_fine_percent ?? 0);
+    const descontoPercent = Number(settingsRow?.cora_discount_percent ?? 0);
+
     // 5) Emite cada parcela pendente (sem cora_invoice_id)
     const results: any[] = [];
     for (const p of parcelas) {
@@ -192,7 +202,12 @@ Deno.serve(async (req) => {
             amount: valorCentavos,
           },
         ],
-        payment_terms: { due_date: p.vencimento },
+        payment_terms: {
+          due_date: p.vencimento,
+          ...(jurosMensal > 0 ? { interest_monthly_percent: jurosMensal } : {}),
+          ...(multaPercent > 0 ? { fine_percent: multaPercent } : {}),
+          ...(descontoPercent > 0 ? { discount_percent: descontoPercent } : {}),
+        },
         payment_forms: ["BANK_SLIP", "PIX"],
       };
 
