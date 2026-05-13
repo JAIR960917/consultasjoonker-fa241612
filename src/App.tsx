@@ -52,6 +52,7 @@ const App = () => (
             <Route path="/credenciais" element={<ProtectedRoute allowedRoles={["desenvolvedor"]}><Credenciais /></ProtectedRoute>} />
             <Route path="/contratos-importados" element={<ProtectedRoute adminOnly><ContratosImportados /></ProtectedRoute>} />
             <Route path="/pagamento-entrega" element={<ProtectedRoute><PagamentoEntrega /></ProtectedRoute>} />
+            <Route path="/consultas-salvas-pg-entrega" element={<ProtectedRoute><ConsultasSalvasPgEntrega /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
