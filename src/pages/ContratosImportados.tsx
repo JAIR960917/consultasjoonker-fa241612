@@ -51,7 +51,7 @@ export default function ContratosImportados() {
     try {
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
-      const url = `https://vtiimbbrxsfqgmscqdnl.supabase.co/functions/v1/assertiva-sincronizar-contratos`;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assertiva-sincronizar-contratos`;
       const res = await fetch(url, {
         method: "POST",
         headers: {
