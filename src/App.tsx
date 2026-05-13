@@ -51,7 +51,7 @@ const App = () => (
             <Route path="/relatorios-empresa" element={<ProtectedRoute adminOnly><RelatoriosEmpresa /></ProtectedRoute>} />
             <Route path="/consultas-salvas" element={<ProtectedRoute adminOnly><ConsultasSalvas /></ProtectedRoute>} />
             <Route path="/relatorios-diarios" element={<ProtectedRoute><RelatoriosDiarios /></ProtectedRoute>} />
-            <Route path="/credenciais" element={<ProtectedRoute allowedRoles={["desenvolvedor"]}><Credenciais /></ProtectedRoute>} />
+            <Route path="/credenciais" element={<ProtectedRoute allowedRoles={["admin","desenvolvedor"]}><Credenciais /></ProtectedRoute>} />
             <Route path="/contratos-importados" element={<ProtectedRoute adminOnly><ContratosImportados /></ProtectedRoute>} />
             <Route path="/pagamento-entrega" element={<ProtectedRoute><PagamentoEntrega /></ProtectedRoute>} />
             <Route path="/consultas-salvas-pg-entrega" element={<ProtectedRoute><ConsultasSalvasPgEntrega /></ProtectedRoute>} />
