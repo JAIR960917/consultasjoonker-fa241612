@@ -214,6 +214,10 @@ export default function Contrato() {
 
   const submitSignature = async () => {
     if (!c) return;
+    if (!comprovanteFile) {
+      toast.error("Anexe o comprovante de residência do cliente");
+      return;
+    }
     setPhoneChoiceOpen(false);
     setSigning(true);
 
