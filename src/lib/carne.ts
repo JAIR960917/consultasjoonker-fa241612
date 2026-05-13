@@ -32,6 +32,8 @@ export interface CarneOptions {
   parcelas: CarneParcela[];
   descricao?: string; // ex.: "Oculos"
   data_emissao?: string; // YYYY-MM-DD
+  multa_percent?: number; // % de multa após vencimento
+  juros_mensal_percent?: number; // % de juros ao mês
 }
 
 const fmtBRL = (n: number) =>
