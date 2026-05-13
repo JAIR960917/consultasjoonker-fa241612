@@ -215,6 +215,39 @@ export type Database = {
         }
         Relationships: []
       }
+      consultas_pg_entrega: {
+        Row: {
+          cidade: string
+          cpf: string
+          created_at: string
+          empresa_id: string | null
+          id: string
+          nome: string | null
+          raw: Json | null
+          user_id: string
+        }
+        Insert: {
+          cidade?: string
+          cpf: string
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          nome?: string | null
+          raw?: Json | null
+          user_id: string
+        }
+        Update: {
+          cidade?: string
+          cpf?: string
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          nome?: string | null
+          raw?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       contract_template: {
         Row: {
           company_address: string
