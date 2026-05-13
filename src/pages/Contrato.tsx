@@ -120,7 +120,7 @@ export default function Contrato() {
       return;
     }
 
-    if (emitidas && emitidas.length > 0) {
+    if (emitidas && emitidas.length > 0 && role !== "desenvolvedor") {
       setDeleting(false);
       setDeleteDialog(false);
       toast.error("Não é possível excluir este contrato", {
