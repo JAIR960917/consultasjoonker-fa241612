@@ -139,11 +139,19 @@ export function ParcelasContrato({ contratoId, contratoAssinado }: {
         }
       }
 
+      const { data: settings } = await supabase
+        .from("settings")
+        .select("cora_fine_percent, cora_interest_monthly_percent")
+        .limit(1)
+        .maybeSingle();
+
       const safeName = (contrato.nome || "cliente").replace(/[^\w]+/g, "_").toLowerCase();
       await downloadCarnePdf(
         {
           empresa: { nome: empresaNome, cnpj: empresaCnpj },
           pagador: { nome: contrato.nome, cpf: contrato.cpf },
+          multa_percent: Number(settings?.cora_fine_percent ?? 0),
+          juros_mensal_percent: Number(settings?.cora_interest_monthly_percent ?? 0),
           parcelas: emitidas.map((p) => ({
             numero_parcela: p.numero_parcela,
             total_parcelas: p.total_parcelas,
