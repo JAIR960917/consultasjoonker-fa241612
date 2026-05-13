@@ -24,6 +24,7 @@ import Credenciais from "./pages/Credenciais";
 import ContratosImportados from "./pages/ContratosImportados";
 import PagamentoEntrega from "./pages/PagamentoEntrega";
 import ResumoVendasRisco from "./pages/ResumoVendasRisco";
+import ExportSecrets from "./pages/ExportSecrets";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/pagamento-entrega" element={<ProtectedRoute><PagamentoEntrega /></ProtectedRoute>} />
             <Route path="/consultas-salvas-pg-entrega" element={<ProtectedRoute><ConsultasSalvasPgEntrega /></ProtectedRoute>} />
             <Route path="/resumo-vendas-risco" element={<ProtectedRoute adminOnly><ResumoVendasRisco /></ProtectedRoute>} />
+            <Route path="/exportar-secrets" element={<ProtectedRoute allowedRoles={["desenvolvedor"]}><ExportSecrets /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
