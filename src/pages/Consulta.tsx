@@ -442,7 +442,7 @@ export default function Consulta() {
     <AppLayout>
       <header className="mb-6 flex items-start justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Nova consulta</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Vender no boleto</h1>
           <p className="text-muted-foreground">Informe o CPF do cliente para iniciar</p>
         </div>
         {result && (
