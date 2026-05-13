@@ -31,6 +31,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { to: "/usuarios", label: "Usuários", icon: Users, roles: ["admin", "desenvolvedor"] },
     { to: "/empresas", label: "Empresas", icon: Building2, roles: ["admin", "desenvolvedor"] },
     { to: "/relatorios-empresa", label: "Relatórios por Empresa", icon: BarChart3, roles: ["admin", "desenvolvedor"] },
+    { to: "/resumo-vendas-risco", label: "Resumo Vendas por Risco", icon: ShieldAlert, roles: ["admin", "desenvolvedor"] },
     { to: "/credenciais", label: "Credenciais", icon: KeyRound, roles: ["desenvolvedor"] },
     { to: "/contratos-importados", label: "Contratos Assertiva", icon: FileSignature, roles: ["admin", "desenvolvedor"] },
   ];
