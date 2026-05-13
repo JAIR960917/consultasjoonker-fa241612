@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
           ...(multaPercent > 0 ? { fine: { rate: multaPercent } } : {}),
           ...(jurosMensal > 0 ? { interest: { rate: jurosMensal } } : {}),
           ...(descontoPercent > 0 ? {
-            discount: [{ type: "PERCENTAGE", value: descontoPercent, date: p.vencimento }],
+            discount: { type: "PERCENT", value: descontoPercent },
           } : {}),
         },
         payment_forms: ["BANK_SLIP", "PIX"],
