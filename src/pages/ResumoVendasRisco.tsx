@@ -128,7 +128,10 @@ export default function ResumoVendasRisco() {
         }
       }
 
-      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      const hojeReal = new Date(); hojeReal.setHours(0,0,0,0);
+      // Referência para inadimplência = fim do período escolhido (limitado a hoje)
+      const ref = fim < hojeReal ? new Date(fim.getFullYear(), fim.getMonth(), fim.getDate()) : hojeReal;
+      ref.setHours(0,0,0,0);
       parcelas.forEach((p) => {
         const f = vendaToFaixa.get(p.venda_id);
         if (!f) return;
@@ -141,7 +144,9 @@ export default function ResumoVendasRisco() {
         }
         // pendente / em aberto
         novo[f].emAberto += valor;
-        const diff = diffDias(venc, hoje); // >0 a vencer; <0 vencido
+        // Considera apenas parcelas cujo vencimento está dentro do período escolhido
+        if (venc < inicio || venc > ref) return;
+        const diff = diffDias(venc, ref); // >0 a vencer; <0 vencido
         if (diff >= 0) {
           // a vencer
           if (diff <= 30) novo[f].vencimento_1_30 += valor;
