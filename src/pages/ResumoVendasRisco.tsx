@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 interface Empresa { id: string; nome: string }
 
-type FaixaKey = "A" | "B" | "C" | "D" | "E" | "POL" | "SEM";
+type FaixaKey = "A" | "B" | "C" | "D" | "E" | "SEM";
 
 const FAIXAS: { key: FaixaKey; label: string; sub: string; color: string }[] = [
   { key: "A", label: "A", sub: "Risco muito baixo", color: "bg-emerald-600 text-white" },
@@ -24,7 +24,6 @@ const FAIXAS: { key: FaixaKey; label: string; sub: string; color: string }[] = [
   { key: "C", label: "C", sub: "Risco médio", color: "bg-yellow-500 text-white" },
   { key: "D", label: "D", sub: "Risco alto", color: "bg-orange-500 text-white" },
   { key: "E", label: "E", sub: "Risco muito alto", color: "bg-red-600 text-white" },
-  { key: "POL", label: "•", sub: "Política de crédito", color: "bg-slate-500 text-white" },
   { key: "SEM", label: "•", sub: "Venda sem análise", color: "bg-slate-400 text-white" },
 ];
 
@@ -34,8 +33,7 @@ function classificar(score: number | null | undefined): FaixaKey {
   if (score >= 701) return "B";
   if (score >= 451) return "C";
   if (score >= 300) return "D";
-  if (score >= 199) return "E";
-  return "POL";
+  return "E";
 }
 
 interface Bucket {
@@ -76,7 +74,7 @@ export default function ResumoVendasRisco() {
   const [loading, setLoading] = useState(false);
   const [buckets, setBuckets] = useState<Record<FaixaKey, Bucket>>(() => ({
     A: emptyBucket(), B: emptyBucket(), C: emptyBucket(), D: emptyBucket(),
-    E: emptyBucket(), POL: emptyBucket(), SEM: emptyBucket(),
+    E: emptyBucket(), SEM: emptyBucket(),
   }));
 
   useEffect(() => {
@@ -105,7 +103,7 @@ export default function ResumoVendasRisco() {
 
       const novo: Record<FaixaKey, Bucket> = {
         A: emptyBucket(), B: emptyBucket(), C: emptyBucket(), D: emptyBucket(),
-        E: emptyBucket(), POL: emptyBucket(), SEM: emptyBucket(),
+        E: emptyBucket(), SEM: emptyBucket(),
       };
 
       (vendas ?? []).forEach((v) => {
@@ -194,12 +192,12 @@ export default function ResumoVendasRisco() {
     { label: "Vencimento entre 61 e 90 dias", render: (b) => brl(b.vencimento_61_90), total: () => brl(totalLinha("vencimento_61_90")) },
     { label: "Vencido de 61 a 90 dias", render: (b) => brl(b.vencido_61_90), total: () => brl(totalLinha("vencido_61_90")) },
     { label: "Inadimplência 90 dias", render: (b) => pct(b.vencido_61_90, b.faturado), total: () => pct(totalLinha("vencido_61_90"), totalLinha("faturado")) },
-    { label: "Vencimento superior a 90 dias", render: (b) => brl(b.vencimento_sup_90), total: () => brl(totalLinha("vencimento_sup_90")) },
-    { label: "Vencido mais de 90 dias", render: (b) => brl(b.vencido_sup_90), total: () => brl(totalLinha("vencido_sup_90")) },
-    { label: "Inadimplência mais de 90 dias", render: (b) => pct(b.vencido_sup_90, b.faturado), total: () => pct(totalLinha("vencido_sup_90"), totalLinha("faturado")) },
-    { label: "Vencimento superior a 180 dias", render: (b) => brl(b.vencimento_sup_180), total: () => brl(totalLinha("vencimento_sup_180")) },
-    { label: "Vencido mais de 180 dias", render: (b) => brl(b.vencido_sup_180), total: () => brl(totalLinha("vencido_sup_180")) },
-    { label: "Inadimplência mais de 180 dias", render: (b) => pct(b.vencido_sup_180, b.faturado), total: () => pct(totalLinha("vencido_sup_180"), totalLinha("faturado")) },
+    { label: "Vencimento entre 91 a 180 dias", render: (b) => brl(b.vencimento_sup_90), total: () => brl(totalLinha("vencimento_sup_90")) },
+    { label: "Vencido entre 91 a 180 dias", render: (b) => brl(b.vencido_sup_90), total: () => brl(totalLinha("vencido_sup_90")) },
+    { label: "Inadimplência 180 dias", render: (b) => pct(b.vencido_sup_90, b.faturado), total: () => pct(totalLinha("vencido_sup_90"), totalLinha("faturado")) },
+    { label: "Vencimento entre 181 a 365 dias", render: (b) => brl(b.vencimento_sup_180), total: () => brl(totalLinha("vencimento_sup_180")) },
+    { label: "Vencido entre 181 a 365 dias", render: (b) => brl(b.vencido_sup_180), total: () => brl(totalLinha("vencido_sup_180")) },
+    { label: "Inadimplência 365 dias", render: (b) => pct(b.vencido_sup_180, b.faturado), total: () => pct(totalLinha("vencido_sup_180"), totalLinha("faturado")) },
   ];
 
   return (
