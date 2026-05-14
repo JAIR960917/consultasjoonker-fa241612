@@ -144,17 +144,17 @@ export default function ResumoVendasRisco() {
         }
         // pendente / em aberto
         novo[f].emAberto += valor;
-        // Considera apenas parcelas cujo vencimento está dentro do período escolhido
-        if (venc < inicio || venc > ref) return;
         const diff = diffDias(venc, ref); // >0 a vencer; <0 vencido
         if (diff >= 0) {
-          // a vencer
+          // a vencer (mantém visão futura completa)
           if (diff <= 30) novo[f].vencimento_1_30 += valor;
           else if (diff <= 60) novo[f].vencimento_31_60 += valor;
           else if (diff <= 90) novo[f].vencimento_61_90 += valor;
           else if (diff <= 180) novo[f].vencimento_sup_90 += valor;
           else novo[f].vencimento_sup_180 += valor;
         } else {
+          // vencido: apenas parcelas cujo vencimento caiu dentro do período escolhido
+          if (venc < inicio || venc > ref) return;
           const atraso = -diff;
           if (atraso <= 30) novo[f].vencido_1_30 += valor;
           else if (atraso <= 60) novo[f].vencido_31_60 += valor;
