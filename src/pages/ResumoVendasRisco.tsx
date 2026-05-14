@@ -149,7 +149,7 @@ export default function ResumoVendasRisco() {
           else if (diff <= 60) novo[f].vencimento_31_60 += valor;
           else if (diff <= 90) novo[f].vencimento_61_90 += valor;
           else if (diff <= 180) novo[f].vencimento_sup_90 += valor;
-          else novo[f].vencimento_sup_180 += valor;
+          else if (diff <= 365) novo[f].vencimento_sup_180 += valor;
         } else {
           // vencido: apenas parcelas cujo vencimento caiu dentro do período escolhido
           if (venc < inicio || venc > ref) return;
@@ -158,7 +158,7 @@ export default function ResumoVendasRisco() {
           else if (atraso <= 60) novo[f].vencido_31_60 += valor;
           else if (atraso <= 90) novo[f].vencido_61_90 += valor;
           else if (atraso <= 180) novo[f].vencido_sup_90 += valor;
-          else novo[f].vencido_sup_180 += valor;
+          else if (atraso <= 365) novo[f].vencido_sup_180 += valor;
         }
       });
 
